@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Sdk Name="Aspire.AppHost.Sdk" Version="9.2.0" />
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
+    <IsAspireHost>true</IsAspireHost>
+    <OutputType>Exe</OutputType>
+    <UserSecretsId>ruleset-engine-apphost</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.2.0" />
+    <!-- Pin KubernetesClient to address NuGet vulnerability advisory on transitive 16.0.2 -->
+    <PackageReference Include="KubernetesClient" Version="19.0.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../RulesetEngine.Api/RulesetEngine.Api.csproj" IsAspireProjectResource="true" />
+    <ProjectReference Include="../RulesetEngine.FileWatcher/RulesetEngine.FileWatcher.csproj" IsAspireProjectResource="true" />
+    <ProjectReference Include="../RulesetEngine.AdminUI/RulesetEngine.AdminUI.csproj" IsAspireProjectResource="true" />
+  </ItemGroup>
+</Project>

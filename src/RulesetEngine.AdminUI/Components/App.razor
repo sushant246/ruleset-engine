@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <title>Ruleset Engine Admin</title>
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 0; background: #f5f5f5; }
+        .sidebar { position: fixed; top: 0; left: 0; width: 220px; height: 100vh; background: #1e293b; color: #fff; padding: 1rem; }
+        .sidebar h2 { font-size: 1rem; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 1rem; }
+        .sidebar a { display: block; padding: .4rem .6rem; border-radius: .3rem; color: #e2e8f0; text-decoration: none; margin-bottom: .2rem; }
+        .sidebar a:hover, .sidebar a.active { background: #334155; }
+        .main { margin-left: 220px; padding: 2rem; }
+        table { width: 100%; border-collapse: collapse; background: #fff; border-radius: .5rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+        th { background: #f1f5f9; text-align: left; padding: .6rem 1rem; font-size: .85rem; text-transform: uppercase; letter-spacing: .05em; color: #64748b; }
+        td { padding: .6rem 1rem; border-top: 1px solid #e2e8f0; font-size: .9rem; }
+        tr:hover td { background: #f8fafc; }
+        .btn { display: inline-block; padding: .4rem .9rem; border-radius: .3rem; border: none; cursor: pointer; font-size: .9rem; }
+        .btn-primary { background: #3b82f6; color: #fff; }
+        .btn-danger  { background: #ef4444; color: #fff; }
+        .btn-sm { padding: .25rem .6rem; font-size: .8rem; }
+        .badge-ok { background: #dcfce7; color: #166534; padding: .15rem .5rem; border-radius: 99px; font-size: .75rem; }
+        .badge-no { background: #fee2e2; color: #991b1b; padding: .15rem .5rem; border-radius: 99px; font-size: .75rem; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; font-size: .85rem; color: #374151; margin-bottom: .25rem; }
+        input, select { width: 100%; padding: .4rem .6rem; border: 1px solid #d1d5db; border-radius: .3rem; font-size: .9rem; box-sizing: border-box; }
+        .card { background: #fff; border-radius: .5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,.1); margin-bottom: 1.5rem; }
+        h1 { font-size: 1.4rem; color: #1e293b; margin-bottom: 1rem; }
+        .alert-error { background: #fee2e2; color: #991b1b; padding: .75rem 1rem; border-radius: .3rem; margin-bottom: 1rem; }
+        .section-title { font-size: .95rem; font-weight: 600; color: #374151; margin: 1rem 0 .5rem; }
+        .condition-row { display: flex; gap: .5rem; align-items: center; margin-bottom: .4rem; }
+        .condition-row input, .condition-row select { width: auto; flex: 1; }
+    </style>
+</head>
+<body>
+    <Routes />
+    <script src="_framework/blazor.web.js"></script>
+</body>
+</html>

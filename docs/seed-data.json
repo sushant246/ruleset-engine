@@ -1,0 +1,66 @@
+[
+  {
+    "name": "Ruleset One",
+    "description": "Ruleset for Publisher 99990",
+    "priority": 1,
+    "isActive": true,
+    "conditions": [
+      { "field": "PublisherNumber", "operator": "Equals", "value": "99990" },
+      { "field": "OrderMethod", "operator": "Equals", "value": "POD" }
+    ],
+    "rules": [
+      {
+        "name": "Rule 1",
+        "priority": 1,
+        "conditions": [
+          { "field": "BindTypeCode", "operator": "Equals", "value": "PB" },
+          { "field": "IsCountry", "operator": "Equals", "value": "US" },
+          { "field": "PrintQuantity", "operator": "LessThanOrEqual", "value": "20" }
+        ],
+        "result": { "productionPlant": "US" }
+      }
+    ]
+  },
+  {
+    "name": "Ruleset Two",
+    "description": "Ruleset for Publisher 99999",
+    "priority": 2,
+    "isActive": true,
+    "conditions": [
+      { "field": "PublisherNumber", "operator": "Equals", "value": "99999" },
+      { "field": "OrderMethod", "operator": "Equals", "value": "POD" }
+    ],
+    "rules": [
+      {
+        "name": "Rule 1",
+        "priority": 1,
+        "conditions": [
+          { "field": "BindTypeCode", "operator": "Equals", "value": "PB" },
+          { "field": "IsCountry", "operator": "Equals", "value": "US" },
+          { "field": "PrintQuantity", "operator": "LessThanOrEqual", "value": "20" }
+        ],
+        "result": { "productionPlant": "US" }
+      },
+      {
+        "name": "Rule 2",
+        "priority": 2,
+        "conditions": [
+          { "field": "BindTypeCode", "operator": "Equals", "value": "CV" },
+          { "field": "IsCountry", "operator": "Equals", "value": "UK" },
+          { "field": "PrintQuantity", "operator": "LessThanOrEqual", "value": "20" }
+        ],
+        "result": { "productionPlant": "UK" }
+      },
+      {
+        "name": "Rule 3",
+        "priority": 3,
+        "conditions": [
+          { "field": "BindTypeCode", "operator": "Equals", "value": "PB" },
+          { "field": "IsCountry", "operator": "Equals", "value": "US" },
+          { "field": "PrintQuantity", "operator": "GreaterThanOrEqual", "value": "20" }
+        ],
+        "result": { "productionPlant": "KGL" }
+      }
+    ]
+  }
+]

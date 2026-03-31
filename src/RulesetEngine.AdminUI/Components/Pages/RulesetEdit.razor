@@ -1,0 +1,240 @@
+@page "/rulesets/new"
+@page "/rulesets/{Id:int}"
+@rendermode InteractiveServer
+@inject RulesetEngine.AdminUI.Services.RulesetApiClient Api
+@inject NavigationManager Nav
+
+<h1>@(Id == null ? "New Ruleset" : "Edit Ruleset")</h1>
+
+@if (_error != null)
+{
+    <div class="alert-error">@_error</div>
+}
+
+@if (_model != null)
+{
+    <div class="card">
+        <div class="form-group">
+            <label>Name</label>
+            <input @bind="_model.Name" />
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <input @bind="_model.Description" />
+        </div>
+        <div class="form-group">
+            <label>Priority</label>
+            <input type="number" @bind="_model.Priority" />
+        </div>
+        <div class="form-group">
+            <label>Gate Condition Logic</label>
+            <select @bind="_model.ConditionLogic">
+                <option value="AND">AND – all gate conditions must match</option>
+                <option value="OR">OR – any gate condition must match</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>
+                <input type="checkbox" @bind="_model.IsActive" /> Active
+            </label>
+        </div>
+
+        <div class="section-title">Gate Conditions</div>
+        @foreach (var (cond, idx) in _model.Conditions.Select((c, i) => (c, i)))
+        {
+            <div class="condition-row">
+                <input placeholder="Field" @bind="cond.Field" />
+                <select @bind="cond.Operator">
+                    @foreach (var op in _operators)
+                    { <option value="@op">@op</option> }
+                </select>
+                <input placeholder="Value" @bind="cond.Value" />
+                <button class="btn btn-danger btn-sm" @onclick="() => _model.Conditions.RemoveAt(idx)">✕</button>
+            </div>
+        }
+        <button class="btn btn-primary btn-sm" @onclick="AddGateCondition">+ Add Gate Condition</button>
+
+        <div class="section-title" style="margin-top:1.5rem">Rules</div>
+        @foreach (var (rule, ri) in _model.Rules.Select((r, i) => (r, i)))
+        {
+            <div class="card" style="margin-bottom:.75rem">
+                <div class="form-group">
+                    <label>Rule Name</label>
+                    <input @bind="rule.Name" />
+                </div>
+                <div style="display:flex;gap:1rem">
+                    <div class="form-group" style="flex:1">
+                        <label>Priority</label>
+                        <input type="number" @bind="rule.Priority" />
+                    </div>
+                    <div class="form-group" style="flex:1">
+                        <label>Condition Logic</label>
+                        <select @bind="rule.ConditionLogic">
+                            <option value="AND">AND</option>
+                            <option value="OR">OR</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1">
+                        <label>Production Plant</label>
+                        <input @bind="rule.ProductionPlant" />
+                    </div>
+                </div>
+
+                <div class="section-title">Conditions</div>
+                @foreach (var (cond, ci) in rule.Conditions.Select((c, i) => (c, i)))
+                {
+                    <div class="condition-row">
+                        <input placeholder="Field" @bind="cond.Field" />
+                        <select @bind="cond.Operator">
+                            @foreach (var op in _operators)
+                            { <option value="@op">@op</option> }
+                        </select>
+                        <input placeholder="Value" @bind="cond.Value" />
+                        <button class="btn btn-danger btn-sm" @onclick="() => rule.Conditions.RemoveAt(ci)">✕</button>
+                    </div>
+                }
+                <button class="btn btn-primary btn-sm" @onclick="() => rule.Conditions.Add(new())">+ Add Condition</button>
+                <button class="btn btn-danger btn-sm" style="margin-left:.5rem" @onclick="() => _model.Rules.RemoveAt(ri)">Remove Rule</button>
+            </div>
+        }
+        <button class="btn btn-primary btn-sm" @onclick="AddRule">+ Add Rule</button>
+    </div>
+
+    <button class="btn btn-primary" @onclick="SaveAsync">💾 Save</button>
+    <button class="btn" style="background:#e2e8f0;margin-left:.5rem" @onclick="NavigateBack">Cancel</button>
+}
+
+@code {
+    [Parameter] public int? Id { get; set; }
+
+    private EditModel? _model;
+    private string? _error;
+
+    private static readonly string[] _operators = new[]
+    {
+        "Equals", "NotEquals", "Contains", "StartsWith", "EndsWith",
+        "GreaterThan", "GreaterThanOrEqual", "LessThan", "LessThanOrEqual"
+    };
+
+    private void NavigateBack() => Nav.NavigateTo("/rulesets");
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id != null)
+        {
+            try
+            {
+                var dto = await Api.GetRulesetAsync(Id.Value);
+                if (dto == null) { _error = "Ruleset not found"; return; }
+                _model = EditModel.FromDto(dto);
+            }
+            catch (Exception ex)
+            {
+                _error = ex.Message;
+            }
+        }
+        else
+        {
+            _model = new EditModel();
+        }
+    }
+
+    private void AddGateCondition() => _model!.Conditions.Add(new());
+    private void AddRule() => _model!.Rules.Add(new RuleEditModel { Priority = _model.Rules.Count + 1 });
+
+    private async Task SaveAsync()
+    {
+        _error = null;
+        try
+        {
+            var request = _model!.ToRequest();
+            if (Id == null)
+                await Api.CreateRulesetAsync(request);
+            else
+                await Api.UpdateRulesetAsync(Id.Value, request);
+
+            Nav.NavigateTo("/rulesets");
+        }
+        catch (Exception ex)
+        {
+            _error = $"Save failed: {ex.Message}";
+        }
+    }
+
+    // ── local edit models (not shared DTOs to allow mutable binding) ─────────
+
+    private class ConditionEditModel
+    {
+        public string Field { get; set; } = string.Empty;
+        public string Operator { get; set; } = "Equals";
+        public string Value { get; set; } = string.Empty;
+    }
+
+    private class RuleEditModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public int Priority { get; set; }
+        public string ConditionLogic { get; set; } = "AND";
+        public string ProductionPlant { get; set; } = string.Empty;
+        public List<ConditionEditModel> Conditions { get; set; } = new();
+    }
+
+    private class EditModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public int Priority { get; set; } = 1;
+        public bool IsActive { get; set; } = true;
+        public string ConditionLogic { get; set; } = "AND";
+        public List<ConditionEditModel> Conditions { get; set; } = new();
+        public List<RuleEditModel> Rules { get; set; } = new();
+
+        public static EditModel FromDto(RulesetEngine.Application.DTOs.RulesetDto dto) => new()
+        {
+            Name = dto.Name,
+            Description = dto.Description,
+            Priority = dto.Priority,
+            IsActive = dto.IsActive,
+            ConditionLogic = dto.ConditionLogic,
+            Conditions = dto.Conditions.Select(c => new ConditionEditModel
+            {
+                Field = c.Field, Operator = c.Operator, Value = c.Value
+            }).ToList(),
+            Rules = dto.Rules.Select(r => new RuleEditModel
+            {
+                Name = r.Name,
+                Priority = r.Priority,
+                ConditionLogic = r.ConditionLogic,
+                ProductionPlant = r.ProductionPlant ?? string.Empty,
+                Conditions = r.Conditions.Select(c => new ConditionEditModel
+                {
+                    Field = c.Field, Operator = c.Operator, Value = c.Value
+                }).ToList()
+            }).ToList()
+        };
+
+        public RulesetEngine.Application.DTOs.SaveRulesetRequest ToRequest() => new()
+        {
+            Name = Name,
+            Description = Description,
+            Priority = Priority,
+            IsActive = IsActive,
+            ConditionLogic = ConditionLogic,
+            Conditions = Conditions.Select(c => new RulesetEngine.Application.DTOs.SaveConditionRequest
+            {
+                Field = c.Field, Operator = c.Operator, Value = c.Value
+            }).ToList(),
+            Rules = Rules.Select(r => new RulesetEngine.Application.DTOs.SaveRuleRequest
+            {
+                Name = r.Name,
+                Priority = r.Priority,
+                ConditionLogic = r.ConditionLogic,
+                ProductionPlant = r.ProductionPlant,
+                Conditions = r.Conditions.Select(c => new RulesetEngine.Application.DTOs.SaveConditionRequest
+                {
+                    Field = c.Field, Operator = c.Operator, Value = c.Value
+                }).ToList()
+            }).ToList()
+        };
+    }
+}
