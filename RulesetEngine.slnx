@@ -1,13 +1,14 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="RulesetEngine.AppHost/RulesetEngine.AppHost.AppHost/RulesetEngine.AppHost.csproj" Id="26b4f0d6-ba14-44bd-987b-5f1b26faf4c9" />
+    <Project Path="RulesetEngine.AppHost/RulesetEngine.AppHost.ServiceDefaults/RulesetEngine.AppHost.ServiceDefaults.csproj" />
+    <Project Path="src/RulesetEngine.AdminUI/RulesetEngine.AdminUI.csproj" />
     <Project Path="src/RulesetEngine.Api/RulesetEngine.Api.csproj" />
     <Project Path="src/RulesetEngine.Application/RulesetEngine.Application.csproj" />
     <Project Path="src/RulesetEngine.Domain/RulesetEngine.Domain.csproj" />
-    <Project Path="src/RulesetEngine.Infrastructure/RulesetEngine.Infrastructure.csproj" />
     <Project Path="src/RulesetEngine.FileWatcher/RulesetEngine.FileWatcher.csproj" />
-    <Project Path="src/RulesetEngine.AdminUI/RulesetEngine.AdminUI.csproj" />
+    <Project Path="src/RulesetEngine.Infrastructure/RulesetEngine.Infrastructure.csproj" />
     <Project Path="src/RulesetEngine.ServiceDefaults/RulesetEngine.ServiceDefaults.csproj" />
-
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/RulesetEngine.Tests/RulesetEngine.Tests.csproj" />
