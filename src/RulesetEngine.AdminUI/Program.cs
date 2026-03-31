@@ -5,6 +5,8 @@ using RulesetEngine.AdminUI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.AddServiceDefaults();
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -25,6 +27,8 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
+
+app.MapDefaultEndpoints();
 
 app.MapRazorComponents<RulesetEngine.AdminUI.Components.App>()
     .AddInteractiveServerRenderMode();
