@@ -1,0 +1,61 @@
+{
+  "rulesets": [
+    {
+      "name": "Ruleset One",
+      "description": "Publisher 99990 POD orders",
+      "priority": 1,
+      "isActive": true,
+      "conditionLogic": "AND",
+      "rules": [
+        {
+          "name": "Rule 1 - PB US Small Order",
+          "priority": 1,
+          "conditionLogic": "AND",
+          "productionPlant": "US",
+          "conditions": [
+            { "field": "PublisherNumber", "operator": "Equals", "value": "99990" },
+            { "field": "OrderMethod", "operator": "Equals", "value": "POD" },
+            { "field": "BindTypeCode", "operator": "Equals", "value": "PB" },
+            { "field": "IsCountry", "operator": "Equals", "value": "US" },
+            { "field": "PrintQuantity", "operator": "LessThanOrEqual", "value": "20" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Ruleset Two",
+      "description": "Publisher 99999 POD orders",
+      "priority": 2,
+      "isActive": true,
+      "conditionLogic": "AND",
+      "rules": [
+        {
+          "name": "Rule 2 - CV UK Small Order",
+          "priority": 1,
+          "conditionLogic": "AND",
+          "productionPlant": "UK",
+          "conditions": [
+            { "field": "PublisherNumber", "operator": "Equals", "value": "99999" },
+            { "field": "OrderMethod", "operator": "Equals", "value": "POD" },
+            { "field": "BindTypeCode", "operator": "Equals", "value": "CV" },
+            { "field": "IsCountry", "operator": "Equals", "value": "UK" },
+            { "field": "PrintQuantity", "operator": "LessThanOrEqual", "value": "20" }
+          ]
+        },
+        {
+          "name": "Rule 3 - PB US Large Order",
+          "priority": 2,
+          "conditionLogic": "AND",
+          "productionPlant": "KGL",
+          "conditions": [
+            { "field": "PublisherNumber", "operator": "Equals", "value": "99999" },
+            { "field": "OrderMethod", "operator": "Equals", "value": "POD" },
+            { "field": "BindTypeCode", "operator": "Equals", "value": "PB" },
+            { "field": "IsCountry", "operator": "Equals", "value": "US" },
+            { "field": "PrintQuantity", "operator": "GreaterThanOrEqual", "value": "20" }
+          ]
+        }
+      ]
+    }
+  ]
+}

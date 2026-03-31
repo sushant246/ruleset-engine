@@ -1,0 +1,371 @@
+{
+  "info": "These are Swagger test cases for the /api/evaluate endpoint. Copy the 'request' JSON and paste into Swagger UI.",
+  "tests": [
+    {
+      "id": 1,
+      "name": "Basic POD Order - USA",
+      "description": "Simple Print-on-Demand order to United States",
+      "request": {
+        "orderId": "ORD-001",
+        "publisherNumber": "PUB-99999",
+        "publisherName": "BookWorld Ltd",
+        "orderMethod": "POD",
+        "shipments": [
+          {
+            "shipTo": {
+              "isoCountry": "US"
+            }
+          }
+        ],
+        "items": [
+          {
+            "sku": "BOOK-PB-001",
+            "printQuantity": 10,
+            "components": [
+              {
+                "code": "Cover",
+                "attributes": {
+                  "bindTypeCode": "PB"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "name": "Hardcover Order - UK",
+      "description": "Premium hardcover order to United Kingdom",
+      "request": {
+        "orderId": "ORD-002",
+        "publisherNumber": "PUB-88888",
+        "publisherName": "Premium Press",
+        "orderMethod": "STD",
+        "shipments": [
+          {
+            "shipTo": {
+              "isoCountry": "GB"
+            }
+          }
+        ],
+        "items": [
+          {
+            "sku": "BOOK-HC-002",
+            "printQuantity": 500,
+            "components": [
+              {
+                "code": "Cover",
+                "attributes": {
+                  "bindTypeCode": "HC"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "name": "Mixed Binding Types",
+      "description": "Order with multiple items having different binding types",
+      "request": {
+        "orderId": "ORD-003",
+        "publisherNumber": "PUB-77777",
+        "publisherName": "Multi-Format Books Inc",
+        "orderMethod": "POD",
+        "shipments": [
+          {
+            "shipTo": {
+              "isoCountry": "US"
+            }
+          }
+        ],
+        "items": [
+          {
+            "sku": "BOOK-PB-003A",
+            "printQuantity": 100,
+            "components": [
+              {
+                "code": "Cover",
+                "attributes": {
+                  "bindTypeCode": "PB"
+                }
+              }
+            ]
+          },
+          {
+            "sku": "BOOK-HC-003B",
+            "printQuantity": 50,
+            "components": [
+              {
+                "code": "Cover",
+                "attributes": {
+                  "bindTypeCode": "HC"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "name": "High Volume Order",
+      "description": "Large print run order (5000 units) - tests volume-based routing",
+      "request": {
+        "orderId": "ORD-004",
+        "publisherNumber": "PUB-66666",
+        "publisherName": "Bulk Publisher Corp",
+        "orderMethod": "STD",
+        "shipments": [
+          {
+            "shipTo": {
+              "isoCountry": "US"
+            }
+          }
+        ],
+        "items": [
+          {
+            "sku": "BULK-PRINT-004",
+            "printQuantity": 5000,
+            "components": [
+              {
+                "code": "Cover",
+                "attributes": {
+                  "bindTypeCode": "PB"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "name": "European Order - Germany",
+      "description": "Standard order to European Union country",
+      "request": {
+        "orderId": "ORD-005",
+        "publisherNumber": "PUB-55555",
+        "publisherName": "European Books GmbH",
+        "orderMethod": "STD",
+        "shipments": [
+          {
+            "shipTo": {
+              "isoCountry": "DE"
+            }
+          }
+        ],
+        "items": [
+          {
+            "sku": "BOOK-EU-005",
+            "printQuantity": 200,
+            "components": [
+              {
+                "code": "Cover",
+                "attributes": {
+                  "bindTypeCode": "PB"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "name": "Multiple Shipment Locations",
+      "description": "Order shipping to multiple countries",
+      "request": {
+        "orderId": "ORD-006",
+        "publisherNumber": "PUB-44444",
+        "publisherName": "Global Distribution Ltd",
+        "orderMethod": "STD",
+        "shipments": [
+          {
+            "shipTo": {
+              "isoCountry": "US"
+            }
+          },
+          {
+            "shipTo": {
+              "isoCountry": "CA"
+            }
+          },
+          {
+            "shipTo": {
+              "isoCountry": "MX"
+            }
+          }
+        ],
+        "items": [
+          {
+            "sku": "BOOK-MULTI-006",
+            "printQuantity": 300,
+            "components": [
+              {
+                "code": "Cover",
+                "attributes": {
+                  "bindTypeCode": "PB"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "name": "Single Unit Order",
+      "description": "Minimal order - tests single unit production",
+      "request": {
+        "orderId": "ORD-007",
+        "publisherNumber": "PUB-33333",
+        "publisherName": "Self-Published Author",
+        "orderMethod": "POD",
+        "shipments": [
+          {
+            "shipTo": {
+              "isoCountry": "US"
+            }
+          }
+        ],
+        "items": [
+          {
+            "sku": "AUTHOR-BOOK-007",
+            "printQuantity": 1,
+            "components": [
+              {
+                "code": "Cover",
+                "attributes": {
+                  "bindTypeCode": "PB"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "name": "Coil Binding Order",
+      "description": "Order with coil binding type",
+      "request": {
+        "orderId": "ORD-008",
+        "publisherNumber": "PUB-22222",
+        "publisherName": "Technical Publishing",
+        "orderMethod": "STD",
+        "shipments": [
+          {
+            "shipTo": {
+              "isoCountry": "US"
+            }
+          }
+        ],
+        "items": [
+          {
+            "sku": "MANUAL-COIL-008",
+            "printQuantity": 250,
+            "components": [
+              {
+                "code": "Cover",
+                "attributes": {
+                  "bindTypeCode": "COIL"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "name": "No Match Scenario",
+      "description": "Order that doesn't match any ruleset - tests fallback behavior",
+      "request": {
+        "orderId": "ORD-009",
+        "publisherNumber": "PUB-11111",
+        "publisherName": "Unknown Publisher",
+        "orderMethod": "CUSTOM",
+        "shipments": [
+          {
+            "shipTo": {
+              "isoCountry": "ZZ"
+            }
+          }
+        ],
+        "items": [
+          {
+            "sku": "UNKNOWN-TYPE-009",
+            "printQuantity": 1,
+            "components": [
+              {
+                "code": "Cover",
+                "attributes": {
+                  "bindTypeCode": "UNKNOWN"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "name": "Complex Multi-Item Order",
+      "description": "Complex order with multiple items, different quantities, and binding types",
+      "request": {
+        "orderId": "ORD-010",
+        "publisherNumber": "PUB-00000",
+        "publisherName": "Complex Publisher",
+        "orderMethod": "STD",
+        "shipments": [
+          {
+            "shipTo": {
+              "isoCountry": "US"
+            }
+          }
+        ],
+        "items": [
+          {
+            "sku": "ITEM-A-010",
+            "printQuantity": 100,
+            "components": [
+              {
+                "code": "Cover",
+                "attributes": {
+                  "bindTypeCode": "PB"
+                }
+              }
+            ]
+          },
+          {
+            "sku": "ITEM-B-010",
+            "printQuantity": 250,
+            "components": [
+              {
+                "code": "Cover",
+                "attributes": {
+                  "bindTypeCode": "HC"
+                }
+              }
+            ]
+          },
+          {
+            "sku": "ITEM-C-010",
+            "printQuantity": 75,
+            "components": [
+              {
+                "code": "Cover",
+                "attributes": {
+                  "bindTypeCode": "PB"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

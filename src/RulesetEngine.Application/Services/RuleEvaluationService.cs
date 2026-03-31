@@ -51,7 +51,16 @@ public class RuleEvaluationService : IRuleEvaluationService
             }
 
             var rulesets = (await _rulesetRepository.GetActiveRulesetsAsync()).ToList();
-            _logger.LogDebug("Loaded {RulesetCount} active rulesets", rulesets.Count);
+            _logger.LogInformation("📋 Loaded {RulesetCount} active rulesets", rulesets.Count);
+
+            if (rulesets.Count == 0)
+            {
+                _logger.LogWarning("⚠️ WARNING: No rulesets found in database!");
+                foreach (var rs in rulesets)
+                {
+                    _logger.LogInformation("  - Ruleset: {Name}, Rules: {RuleCount}", rs.Name, rs.Rules?.Count ?? 0);
+                }
+            }
 
             var context = ExtractContext(order);
             var domainResult = _evaluationEngine.Evaluate(context, rulesets);

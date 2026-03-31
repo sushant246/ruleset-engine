@@ -6,4 +6,6 @@ public class Condition
     public string Field { get; set; } = string.Empty;
     public string Operator { get; set; } = string.Empty;
     public string Value { get; set; } = string.Empty;
+    public int RuleId { get; set; }
+    public Rule? Rule { get; set; }
 }
