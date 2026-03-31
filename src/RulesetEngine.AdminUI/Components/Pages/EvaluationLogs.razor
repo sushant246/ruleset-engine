@@ -1,0 +1,95 @@
+@page "/logs"
+@rendermode InteractiveServer
+@inject RulesetEngine.AdminUI.Services.RulesetApiClient Api
+
+<h1>Evaluation Logs</h1>
+
+<div style="margin-bottom:1rem;display:flex;gap:.5rem;align-items:center">
+    <label for="count">Show last</label>
+    <select id="count" @bind="_count" style="width:auto">
+        <option value="50">50</option>
+        <option value="100" selected>100</option>
+        <option value="250">250</option>
+    </select>
+    <button class="btn btn-primary btn-sm" @onclick="LoadAsync">Refresh</button>
+</div>
+
+@if (_error != null)
+{
+    <div class="alert-error">@_error</div>
+}
+
+@if (_logs == null)
+{
+    <p>Loading…</p>
+}
+else if (!_logs.Any())
+{
+    <p>No evaluation logs yet.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Time (UTC)</th>
+                <th>Order ID</th>
+                <th>Matched</th>
+                <th>Ruleset</th>
+                <th>Rule</th>
+                <th>Plant</th>
+                <th>Fallback</th>
+                <th>Reason</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var log in _logs)
+            {
+                <tr>
+                    <td style="white-space:nowrap">@log.EvaluatedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                    <td>@log.OrderId</td>
+                    <td>
+                        @if (log.Matched)
+                        { <span class="badge-ok">Yes</span> }
+                        else
+                        { <span class="badge-no">No</span> }
+                    </td>
+                    <td>@(log.MatchedRuleset ?? "—")</td>
+                    <td>@(log.MatchedRule ?? "—")</td>
+                    <td>@(log.ProductionPlant ?? "—")</td>
+                    <td>
+                        @if (log.FallbackUsed)
+                        { <span class="badge-no">Yes</span> }
+                        else
+                        { <span>No</span> }
+                    </td>
+                    <td style="font-size:.8rem;color:#64748b">@log.Reason</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<RulesetEngine.Application.DTOs.EvaluationLogDto>? _logs;
+    private string? _error;
+    private int _count = 100;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _error = null;
+        try
+        {
+            _logs = await Api.GetRecentLogsAsync(_count);
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to load logs: {ex.Message}";
+        }
+    }
+}

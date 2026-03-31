@@ -22,6 +22,7 @@ public class RulesetDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
             entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.ConditionLogic).IsRequired().HasMaxLength(10);
             entity.HasMany(e => e.Rules)
                   .WithOne(r => r.Ruleset)
                   .HasForeignKey(r => r.RulesetId)
@@ -32,6 +33,7 @@ public class RulesetDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.ConditionLogic).IsRequired().HasMaxLength(10);
             entity.HasOne(e => e.Result)
                   .WithOne(r => r.Rule)
                   .HasForeignKey<RuleResult>(r => r.RuleId)

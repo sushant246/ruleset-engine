@@ -4,6 +4,10 @@
     <Project Path="src/RulesetEngine.Application/RulesetEngine.Application.csproj" />
     <Project Path="src/RulesetEngine.Domain/RulesetEngine.Domain.csproj" />
     <Project Path="src/RulesetEngine.Infrastructure/RulesetEngine.Infrastructure.csproj" />
+    <Project Path="src/RulesetEngine.FileWatcher/RulesetEngine.FileWatcher.csproj" />
+    <Project Path="src/RulesetEngine.AdminUI/RulesetEngine.AdminUI.csproj" />
+    <Project Path="src/RulesetEngine.ServiceDefaults/RulesetEngine.ServiceDefaults.csproj" />
+    <Project Path="src/RulesetEngine.AppHost/RulesetEngine.AppHost.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/RulesetEngine.Tests/RulesetEngine.Tests.csproj" />

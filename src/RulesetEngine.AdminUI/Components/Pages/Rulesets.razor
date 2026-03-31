@@ -1,0 +1,94 @@
+@page "/rulesets"
+@rendermode InteractiveServer
+@inject RulesetEngine.AdminUI.Services.RulesetApiClient Api
+@inject NavigationManager Nav
+
+<h1>Rulesets</h1>
+
+<button class="btn btn-primary" @onclick="NavigateToNew">+ New Ruleset</button>
+
+@if (_error != null)
+{
+    <div class="alert-error">@_error</div>
+}
+
+@if (_rulesets == null)
+{
+    <p>Loading…</p>
+}
+else
+{
+    <table style="margin-top:1rem">
+        <thead>
+            <tr>
+                <th>Priority</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Gate Logic</th>
+                <th>Active</th>
+                <th>Rules</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var rs in _rulesets.OrderBy(r => r.Priority))
+            {
+                <tr>
+                    <td>@rs.Priority</td>
+                    <td>@rs.Name</td>
+                    <td>@rs.Description</td>
+                    <td>@rs.ConditionLogic</td>
+                    <td>
+                        @if (rs.IsActive)
+                        { <span class="badge-ok">Active</span> }
+                        else
+                        { <span class="badge-no">Inactive</span> }
+                    </td>
+                    <td>@rs.Rules.Count</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" @onclick="() => EditRuleset(rs.Id)">Edit</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteAsync(rs.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<RulesetEngine.Application.DTOs.RulesetDto>? _rulesets;
+    private string? _error;
+
+    private void NavigateToNew() => Nav.NavigateTo("/rulesets/new");
+    private void EditRuleset(int id) => Nav.NavigateTo($"/rulesets/{id}");
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _rulesets = await Api.GetRulesetsAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Failed to load rulesets: {ex.Message}";
+        }
+    }
+
+    private async Task DeleteAsync(int id)
+    {
+        try
+        {
+            await Api.DeleteRulesetAsync(id);
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = $"Delete failed: {ex.Message}";
+        }
+    }
+}

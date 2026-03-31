@@ -28,6 +28,14 @@ public class EvaluationLogRepository : IEvaluationLogRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<EvaluationLog>> GetRecentAsync(int count = 100)
+    {
+        return await _context.EvaluationLogs
+            .OrderByDescending(l => l.EvaluatedAt)
+            .Take(count)
+            .ToListAsync();
+    }
+
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();

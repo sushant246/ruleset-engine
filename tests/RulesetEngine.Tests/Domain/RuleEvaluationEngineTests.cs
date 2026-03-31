@@ -306,6 +306,143 @@ public class RuleEvaluationEngineTests
         Assert.Equal(expectedMatch, result.Matched);
     }
 
+    // ── Composite condition (AND/OR) tests ───────────────────────────────────
+
+    [Fact]
+    public void Evaluate_RulesetOrLogic_MatchesWhenAnyGateConditionMet()
+    {
+        var ruleset = CreateRuleset("OR Ruleset", 1,
+            new List<Condition>
+            {
+                new() { Field = "PublisherNumber", Operator = "Equals", Value = "A" },
+                new() { Field = "PublisherNumber", Operator = "Equals", Value = "B" }
+            },
+            new List<Rule>
+            {
+                new()
+                {
+                    Name = "Rule 1", Priority = 1,
+                    Conditions = new List<Condition>(),
+                    Result = new RuleResult { ProductionPlant = "OR_PLANT" }
+                }
+            });
+        ruleset.ConditionLogic = "OR";
+
+        // Only field "A" is present — should still pass with OR logic
+        var context = new EvaluationContext
+        {
+            OrderId = "OR-001",
+            Fields = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["PublisherNumber"] = "A"
+            }
+        };
+
+        var result = _engine.Evaluate(context, new List<Ruleset> { ruleset });
+
+        Assert.True(result.Matched);
+        Assert.Equal("OR_PLANT", result.ProductionPlant);
+    }
+
+    [Fact]
+    public void Evaluate_RulesetAndLogic_NoMatchWhenOnlyOneGateConditionMet()
+    {
+        var ruleset = CreateRuleset("AND Ruleset", 1,
+            new List<Condition>
+            {
+                new() { Field = "PublisherNumber", Operator = "Equals", Value = "99999" },
+                new() { Field = "OrderMethod", Operator = "Equals", Value = "POD" }
+            },
+            new List<Rule>
+            {
+                new()
+                {
+                    Name = "Rule 1", Priority = 1,
+                    Conditions = new List<Condition>(),
+                    Result = new RuleResult { ProductionPlant = "AND_PLANT" }
+                }
+            });
+        ruleset.ConditionLogic = "AND";
+
+        // Only PublisherNumber matches — OrderMethod is wrong
+        var context = new EvaluationContext
+        {
+            OrderId = "AND-001",
+            Fields = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["PublisherNumber"] = "99999",
+                ["OrderMethod"] = "ONLINE"
+            }
+        };
+
+        var result = _engine.Evaluate(context, new List<Ruleset> { ruleset });
+
+        Assert.False(result.Matched);
+    }
+
+    [Fact]
+    public void Evaluate_RuleOrLogic_MatchesWhenAnyRuleConditionMet()
+    {
+        var ruleset = CreateRuleset("Ruleset", 1,
+            new List<Condition>(),   // no gate conditions
+            new List<Rule>
+            {
+                new()
+                {
+                    Name = "OR Rule", Priority = 1,
+                    ConditionLogic = "OR",
+                    Conditions = new List<Condition>
+                    {
+                        new() { Field = "BindTypeCode", Operator = "Equals", Value = "PB" },
+                        new() { Field = "BindTypeCode", Operator = "Equals", Value = "HC" }
+                    },
+                    Result = new RuleResult { ProductionPlant = "FLEX_PLANT" }
+                }
+            });
+
+        // HC matches second condition
+        var context = new EvaluationContext
+        {
+            OrderId = "OR-RULE-001",
+            Fields = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["BindTypeCode"] = "HC"
+            }
+        };
+
+        var result = _engine.Evaluate(context, new List<Ruleset> { ruleset });
+
+        Assert.True(result.Matched);
+        Assert.Equal("FLEX_PLANT", result.ProductionPlant);
+    }
+
+    [Fact]
+    public void Evaluate_EmptyConditions_AlwaysMatch()
+    {
+        var ruleset = CreateRuleset("Empty Conditions", 1,
+            new List<Condition>(),
+            new List<Rule>
+            {
+                new()
+                {
+                    Name = "Rule 1", Priority = 1,
+                    Conditions = new List<Condition>(),
+                    Result = new RuleResult { ProductionPlant = "CATCH_ALL" }
+                }
+            });
+
+        var context = new EvaluationContext
+        {
+            OrderId = "EMPTY-001",
+            Fields = new Dictionary<string, object?>()
+        };
+
+        var result = _engine.Evaluate(context, new List<Ruleset> { ruleset });
+
+        Assert.True(result.Matched);
+        Assert.Equal("CATCH_ALL", result.ProductionPlant);
+    }
+
     private static Ruleset CreateRuleset(string name, int priority, List<Condition> conditions, List<Rule> rules)
     {
         return new Ruleset

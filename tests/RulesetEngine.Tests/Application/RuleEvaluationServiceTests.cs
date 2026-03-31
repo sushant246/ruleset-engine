@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using RulesetEngine.Application.DTOs;
@@ -21,11 +22,7 @@ public class RuleEvaluationServiceTests
         _mockRulesetRepo = new Mock<IRulesetRepository>();
         _mockLogRepo = new Mock<IEvaluationLogRepository>();
         _engine = new RuleEvaluationEngine(NullLogger<RuleEvaluationEngine>.Instance);
-        _service = new RuleEvaluationService(
-            _engine,
-            _mockRulesetRepo.Object,
-            _mockLogRepo.Object,
-            NullLogger<RuleEvaluationService>.Instance);
+        _service = BuildService(fallbackPlant: null);
 
         _mockLogRepo
             .Setup(r => r.AddAsync(It.IsAny<EvaluationLog>()))
@@ -33,6 +30,29 @@ public class RuleEvaluationServiceTests
         _mockLogRepo
             .Setup(r => r.SaveChangesAsync())
             .Returns(Task.CompletedTask);
+    }
+
+    private RuleEvaluationService BuildService(string? fallbackPlant)
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(fallbackPlant == null
+                ? Array.Empty<KeyValuePair<string, string?>>()
+                : new[] { new KeyValuePair<string, string?>("RulesetEngine:FallbackProductionPlant", fallbackPlant) })
+            .Build();
+
+        _mockLogRepo
+            .Setup(r => r.AddAsync(It.IsAny<EvaluationLog>()))
+            .ReturnsAsync((EvaluationLog log) => log);
+        _mockLogRepo
+            .Setup(r => r.SaveChangesAsync())
+            .Returns(Task.CompletedTask);
+
+        return new RuleEvaluationService(
+            _engine,
+            _mockRulesetRepo.Object,
+            _mockLogRepo.Object,
+            NullLogger<RuleEvaluationService>.Instance,
+            config);
     }
 
     [Fact]
@@ -153,5 +173,69 @@ public class RuleEvaluationServiceTests
                 }
             }
         };
+    }
+
+    // ── Fallback plant tests ─────────────────────────────────────────────────
+
+    [Fact]
+    public async Task EvaluateAsync_NoMatch_WithFallback_ReturnsFallbackPlant()
+    {
+        var service = BuildService(fallbackPlant: "DEFAULT_PLANT");
+        _mockRulesetRepo
+            .Setup(r => r.GetActiveRulesetsAsync())
+            .ReturnsAsync(new List<Ruleset>());
+
+        var order = CreateSampleOrder("FALLBACK-001", "UNKNOWN");
+        var result = await service.EvaluateAsync(order);
+
+        Assert.False(result.Matched);
+        Assert.True(result.FallbackUsed);
+        Assert.Equal("DEFAULT_PLANT", result.ProductionPlant);
+        Assert.Contains("DEFAULT_PLANT", result.Reason);
+    }
+
+    [Fact]
+    public async Task EvaluateAsync_NoMatch_WithoutFallback_ReturnsNullPlant()
+    {
+        _mockRulesetRepo
+            .Setup(r => r.GetActiveRulesetsAsync())
+            .ReturnsAsync(new List<Ruleset>());
+
+        var order = CreateSampleOrder("NOFALLBACK-001", "UNKNOWN");
+        var result = await _service.EvaluateAsync(order);
+
+        Assert.False(result.Matched);
+        Assert.False(result.FallbackUsed);
+        Assert.Null(result.ProductionPlant);
+    }
+
+    [Fact]
+    public async Task EvaluateAsync_MatchFound_FallbackNotUsed()
+    {
+        var service = BuildService(fallbackPlant: "DEFAULT_PLANT");
+        var ruleset = new Ruleset
+        {
+            Id = 1, Name = "Test", Priority = 1, IsActive = true,
+            Conditions = new List<Condition>(),
+            Rules = new List<Rule>
+            {
+                new()
+                {
+                    Name = "Rule 1", Priority = 1,
+                    Conditions = new List<Condition>(),
+                    Result = new RuleResult { ProductionPlant = "MATCHED_PLANT" }
+                }
+            }
+        };
+        _mockRulesetRepo
+            .Setup(r => r.GetActiveRulesetsAsync())
+            .ReturnsAsync(new List<Ruleset> { ruleset });
+
+        var order = CreateSampleOrder("MATCH-001", "ANY");
+        var result = await service.EvaluateAsync(order);
+
+        Assert.True(result.Matched);
+        Assert.False(result.FallbackUsed);
+        Assert.Equal("MATCHED_PLANT", result.ProductionPlant);
     }
 }

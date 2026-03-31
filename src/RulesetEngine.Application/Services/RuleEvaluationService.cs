@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RulesetEngine.Application.DTOs;
 using RulesetEngine.Domain.Interfaces;
@@ -16,17 +17,20 @@ public class RuleEvaluationService : IRuleEvaluationService
     private readonly IRulesetRepository _rulesetRepository;
     private readonly IEvaluationLogRepository _evaluationLogRepository;
     private readonly ILogger<RuleEvaluationService> _logger;
+    private readonly string? _fallbackProductionPlant;
 
     public RuleEvaluationService(
         RuleEvaluationEngine evaluationEngine,
         IRulesetRepository rulesetRepository,
         IEvaluationLogRepository evaluationLogRepository,
-        ILogger<RuleEvaluationService> logger)
+        ILogger<RuleEvaluationService> logger,
+        IConfiguration configuration)
     {
         _evaluationEngine = evaluationEngine;
         _rulesetRepository = rulesetRepository;
         _evaluationLogRepository = evaluationLogRepository;
         _logger = logger;
+        _fallbackProductionPlant = configuration["RulesetEngine:FallbackProductionPlant"];
     }
 
     public async Task<EvaluationResultDto> EvaluateAsync(OrderDto order)
@@ -52,22 +56,38 @@ public class RuleEvaluationService : IRuleEvaluationService
             var context = ExtractContext(order);
             var domainResult = _evaluationEngine.Evaluate(context, rulesets);
 
+            var fallbackUsed = false;
+            var plant = domainResult.ProductionPlant;
+            var reason = domainResult.Reason;
+
+            if (!domainResult.Matched && !string.IsNullOrWhiteSpace(_fallbackProductionPlant))
+            {
+                fallbackUsed = true;
+                plant = _fallbackProductionPlant;
+                reason = $"No matching rule found; using configured fallback plant '{_fallbackProductionPlant}'";
+                _logger.LogInformation(
+                    "No rule matched for Order ID: {OrderId}. Applying fallback plant: {FallbackPlant}",
+                    Sanitize(order.OrderId), _fallbackProductionPlant);
+            }
+
             var result = new EvaluationResultDto
             {
                 Matched = domainResult.Matched,
-                ProductionPlant = domainResult.ProductionPlant,
+                ProductionPlant = plant,
                 MatchedRuleset = domainResult.MatchedRuleset,
                 MatchedRule = domainResult.MatchedRule,
-                Reason = domainResult.Reason
+                Reason = reason,
+                FallbackUsed = fallbackUsed
             };
 
             await LogEvaluationAsync(order, result);
 
             _logger.LogInformation(
-                "Evaluation completed for Order ID: {OrderId}. Plant: {Plant}, Matched: {Matched}",
+                "Evaluation completed for Order ID: {OrderId}. Plant: {Plant}, Matched: {Matched}, FallbackUsed: {FallbackUsed}",
                 Sanitize(order.OrderId),
                 result.ProductionPlant ?? "NONE",
-                result.Matched);
+                result.Matched,
+                result.FallbackUsed);
 
             return result;
         }
@@ -124,6 +144,7 @@ public class RuleEvaluationService : IRuleEvaluationService
                 MatchedRule = result.MatchedRule,
                 ProductionPlant = result.ProductionPlant,
                 Matched = result.Matched,
+                FallbackUsed = result.FallbackUsed,
                 Reason = result.Reason,
                 OrderDataJson = System.Text.Json.JsonSerializer.Serialize(order),
                 EvaluatedAt = DateTime.UtcNow

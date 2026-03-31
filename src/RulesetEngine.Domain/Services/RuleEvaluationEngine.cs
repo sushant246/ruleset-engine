@@ -23,7 +23,7 @@ public class RuleEvaluationEngine
         {
             _logger.LogDebug("Evaluating ruleset: {RulesetName}", ruleset.Name);
 
-            if (!EvaluateConditions(context, ruleset.Conditions))
+            if (!EvaluateConditions(context, ruleset.Conditions, ruleset.ConditionLogic))
             {
                 _logger.LogDebug("Ruleset {RulesetName} conditions not matched", ruleset.Name);
                 continue;
@@ -34,7 +34,7 @@ public class RuleEvaluationEngine
             {
                 _logger.LogDebug("Evaluating rule: {RuleName} in ruleset: {RulesetName}", rule.Name, ruleset.Name);
 
-                if (EvaluateConditions(context, rule.Conditions))
+                if (EvaluateConditions(context, rule.Conditions, rule.ConditionLogic))
                 {
                     _logger.LogInformation(
                         "Matched ruleset: {RulesetName}, rule: {RuleName}, plant: {Plant}",
@@ -62,14 +62,14 @@ public class RuleEvaluationEngine
         };
     }
 
-    private bool EvaluateConditions(EvaluationContext context, IList<Condition> conditions)
+    private bool EvaluateConditions(EvaluationContext context, IList<Condition> conditions, string logic = "AND")
     {
-        foreach (var condition in conditions)
-        {
-            if (!EvaluateCondition(context, condition))
-                return false;
-        }
-        return true;
+        if (!conditions.Any())
+            return true;
+
+        return logic.Equals("OR", StringComparison.OrdinalIgnoreCase)
+            ? conditions.Any(c => EvaluateCondition(context, c))
+            : conditions.All(c => EvaluateCondition(context, c));
     }
 
     private bool EvaluateCondition(EvaluationContext context, Condition condition)

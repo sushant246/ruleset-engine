@@ -20,6 +20,7 @@ builder.Services.AddScoped<IEvaluationLogRepository, EvaluationLogRepository>();
 
 builder.Services.AddScoped<RuleEvaluationEngine>();
 builder.Services.AddScoped<IRuleEvaluationService, RuleEvaluationService>();
+builder.Services.AddScoped<IRulesetManagementService, RulesetManagementService>();
 
 builder.Services.AddTransient<GlobalExceptionHandlingMiddleware>();
 
