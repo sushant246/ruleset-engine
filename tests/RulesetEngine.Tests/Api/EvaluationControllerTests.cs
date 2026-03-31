@@ -1,3 +1,5 @@
+extern alias ApiAlias;
+
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -6,11 +8,11 @@ using Xunit;
 
 namespace RulesetEngine.Tests.Api;
 
-public class EvaluationControllerTests : IClassFixture<WebApplicationFactory<Program>>
+public class EvaluationControllerTests : IClassFixture<WebApplicationFactory<ApiAlias::Program>>
 {
     private readonly HttpClient _client;
 
-    public EvaluationControllerTests(WebApplicationFactory<Program> factory)
+    public EvaluationControllerTests(WebApplicationFactory<ApiAlias::Program> factory)
     {
         _client = factory.CreateClient();
     }

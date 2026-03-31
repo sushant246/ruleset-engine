@@ -20,7 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="../../src/RulesetEngine.Domain/RulesetEngine.Domain.csproj" />
     <ProjectReference Include="../../src/RulesetEngine.Application/RulesetEngine.Application.csproj" />
-    <ProjectReference Include="../../src/RulesetEngine.Api/RulesetEngine.Api.csproj" />
+    <ProjectReference Include="../../src/RulesetEngine.Api/RulesetEngine.Api.csproj" Aliases="ApiAlias" />
     <ProjectReference Include="../../src/RulesetEngine.FileWatcher/RulesetEngine.FileWatcher.csproj" />
   </ItemGroup>
 </Project>

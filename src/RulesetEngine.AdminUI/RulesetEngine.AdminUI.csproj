@@ -8,5 +8,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../RulesetEngine.Application/RulesetEngine.Application.csproj" />
+    <ProjectReference Include="../RulesetEngine.ServiceDefaults/RulesetEngine.ServiceDefaults.csproj" />
   </ItemGroup>
 </Project>
