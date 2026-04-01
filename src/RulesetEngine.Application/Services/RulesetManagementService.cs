@@ -19,15 +19,18 @@ public class RulesetManagementService : IRulesetManagementService
 {
     private readonly IRulesetRepository _rulesetRepository;
     private readonly IEvaluationLogRepository _logRepository;
+    private readonly IRulesetCacheService _cacheService;
     private readonly ILogger<RulesetManagementService> _logger;
 
     public RulesetManagementService(
         IRulesetRepository rulesetRepository,
         IEvaluationLogRepository logRepository,
+        IRulesetCacheService cacheService,
         ILogger<RulesetManagementService> logger)
     {
         _rulesetRepository = rulesetRepository;
         _logRepository = logRepository;
+        _cacheService = cacheService;
         _logger = logger;
     }
 
@@ -47,6 +50,7 @@ public class RulesetManagementService : IRulesetManagementService
     {
         var ruleset = MapFromRequest(request);
         var created = await _rulesetRepository.AddAsync(ruleset);
+        _cacheService.InvalidateCache();
         _logger.LogInformation("Created ruleset: {RulesetName} (Id={Id})", Sanitize(created.Name), created.Id);
         return MapToDto(created);
     }
@@ -81,6 +85,7 @@ public class RulesetManagementService : IRulesetManagementService
         }).ToList();
 
         await _rulesetRepository.UpdateAsync(existing);
+        _cacheService.InvalidateCache();
         _logger.LogInformation("Updated ruleset: {RulesetName} (Id={Id})", Sanitize(existing.Name), existing.Id);
         return MapToDto(existing);
     }
@@ -92,6 +97,7 @@ public class RulesetManagementService : IRulesetManagementService
             return false;
 
         await _rulesetRepository.DeleteAsync(id);
+        _cacheService.InvalidateCache();
         _logger.LogInformation("Deleted ruleset Id={Id}", id);
         return true;
     }

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using RulesetEngine.Application.DTOs;
@@ -21,6 +22,7 @@ public class EvaluationWorkflowIntegrationTests : IDisposable
     private readonly RulesetRepository _rulesetRepository;
     private readonly EvaluationLogRepository _logRepository;
     private readonly RuleEvaluationService _service;
+    private readonly IMemoryCache _cache;
 
     public EvaluationWorkflowIntegrationTests()
     {
@@ -33,6 +35,8 @@ public class EvaluationWorkflowIntegrationTests : IDisposable
         _engine = new RuleEvaluationEngine(NullLogger<RuleEvaluationEngine>.Instance);
         _rulesetRepository = new RulesetRepository(_context);
         _logRepository = new EvaluationLogRepository(_context);
+        _cache = new MemoryCache(new MemoryCacheOptions());
+        var cacheService = new RulesetCacheService(_cache, NullLogger<RulesetCacheService>.Instance);
 
         var config = new ConfigurationBuilder()
             .Build();
@@ -40,6 +44,7 @@ public class EvaluationWorkflowIntegrationTests : IDisposable
         _service = new RuleEvaluationService(
             _engine,
             _rulesetRepository,
+            cacheService,
             _logRepository,
             NullLogger<RuleEvaluationService>.Instance,
             config);
@@ -48,6 +53,7 @@ public class EvaluationWorkflowIntegrationTests : IDisposable
     public void Dispose()
     {
         _context?.Dispose();
+        _cache?.Dispose();
     }
 
     #region Basic Workflow Tests

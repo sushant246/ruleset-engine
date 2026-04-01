@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -14,6 +15,7 @@ public class RuleEvaluationServiceTests
 {
     private readonly Mock<IRulesetRepository> _mockRulesetRepo;
     private readonly Mock<IEvaluationLogRepository> _mockLogRepo;
+    private readonly Mock<IRulesetCacheService> _mockCacheService;
     private readonly RuleEvaluationEngine _engine;
     private readonly RuleEvaluationService _service;
 
@@ -21,6 +23,7 @@ public class RuleEvaluationServiceTests
     {
         _mockRulesetRepo = new Mock<IRulesetRepository>();
         _mockLogRepo = new Mock<IEvaluationLogRepository>();
+        _mockCacheService = new Mock<IRulesetCacheService>();
         _engine = new RuleEvaluationEngine(NullLogger<RuleEvaluationEngine>.Instance);
         _service = BuildService(fallbackPlant: null);
 
@@ -50,6 +53,7 @@ public class RuleEvaluationServiceTests
         return new RuleEvaluationService(
             _engine,
             _mockRulesetRepo.Object,
+            _mockCacheService.Object,
             _mockLogRepo.Object,
             NullLogger<RuleEvaluationService>.Instance,
             config);

@@ -24,6 +24,9 @@ var builder = WebApplication.CreateBuilder(finalArgs);
 
 builder.AddServiceDefaults();
 
+// ── caching ──────────────────────────────────────────────────────────────────
+builder.Services.AddMemoryCache();
+
 // ── infrastructure ───────────────────────────────────────────────────────────
 builder.Services.AddDbContext<RulesetDbContext>(options =>
     options.UseInMemoryDatabase("RulesetEngineDb"));
@@ -33,6 +36,7 @@ builder.Services.AddScoped<IEvaluationLogRepository, EvaluationLogRepository>();
 
 // ── application ──────────────────────────────────────────────────────────────
 builder.Services.AddScoped<RuleEvaluationEngine>();
+builder.Services.AddScoped<IRulesetCacheService, RulesetCacheService>();
 builder.Services.AddScoped<IRuleEvaluationService, RuleEvaluationService>();
 builder.Services.AddScoped<IRulesetManagementService, RulesetManagementService>();
 builder.Services.AddScoped<RulesetSeedService>();
