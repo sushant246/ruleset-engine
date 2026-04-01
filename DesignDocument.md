@@ -852,28 +852,7 @@ Local Development with Aspire:
 
 ---
 
-### 4. AND Logic for Conditions
-**Decision:** All conditions in a rule must match (AND logic)
-
-**Rationale:**
-- ✅ **Simple and predictable** - Easy to understand
-- ✅ **Safe default** - Prevents over-matching
-- ✅ **Performance** - Short-circuit evaluation
-
-**Example:**
-```
-Rule: "Premium Orders"
-Conditions:
-  - PrintQuantity > 1000  AND
-  - OrderMethod == "POD"  AND
-  - CountryCode == "US"
-  
-All must be true for rule to match
-```
-
----
-
-### 5. Fallback Production Plant
+### 4. Fallback Production Plant
 **Decision:** Support configurable fallback plant
 
 **Rationale:**
