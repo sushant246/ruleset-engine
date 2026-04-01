@@ -14,27 +14,25 @@ public class RuleEvaluationEngine
 
     public EvaluationResult Evaluate(EvaluationContext context, IList<Ruleset> rulesets)
     {
-        var orderedRulesets = rulesets
+        var activeRulesets = rulesets
             .Where(r => r.IsActive)
-            .OrderBy(r => r.Priority)
             .ToList();
 
-        foreach (var ruleset in orderedRulesets)
+        foreach (var ruleset in activeRulesets)
         {
             _logger.LogDebug("Evaluating ruleset: {RulesetName}", ruleset.Name);
 
-            if (!EvaluateConditions(context, ruleset.Conditions, ruleset.ConditionLogic))
+            if (!EvaluateConditions(context, ruleset.Conditions))
             {
                 _logger.LogDebug("Ruleset {RulesetName} conditions not matched", ruleset.Name);
                 continue;
             }
 
-            var orderedRules = ruleset.Rules.OrderBy(r => r.Priority).ToList();
-            foreach (var rule in orderedRules)
+            foreach (var rule in ruleset.Rules)
             {
                 _logger.LogDebug("Evaluating rule: {RuleName} in ruleset: {RulesetName}", rule.Name, ruleset.Name);
 
-                if (EvaluateConditions(context, rule.Conditions, rule.ConditionLogic))
+                if (EvaluateConditions(context, rule.Conditions))
                 {
                     _logger.LogInformation(
                         "Matched ruleset: {RulesetName}, rule: {RuleName}, plant: {Plant}",
@@ -62,16 +60,22 @@ public class RuleEvaluationEngine
         };
     }
 
-    private bool EvaluateConditions(EvaluationContext context, IList<Condition> conditions, string logic = "AND")
+    /// <summary>
+    /// Evaluates a list of conditions with AND logic (all must match)
+    /// </summary>
+    private bool EvaluateConditions(EvaluationContext context, IList<Condition> conditions)
     {
+        // If no conditions, always match
         if (!conditions.Any())
             return true;
 
-        return logic.Equals("OR", StringComparison.OrdinalIgnoreCase)
-            ? conditions.Any(c => EvaluateCondition(context, c))
-            : conditions.All(c => EvaluateCondition(context, c));
+        // ALL conditions must be true (AND logic)
+        return conditions.All(c => EvaluateCondition(context, c));
     }
 
+    /// <summary>
+    /// Evaluates a simple condition (single field comparison)
+    /// </summary>
     private bool EvaluateCondition(EvaluationContext context, Condition condition)
     {
         if (!context.Fields.TryGetValue(condition.Field, out var fieldValue))

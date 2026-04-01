@@ -26,7 +26,7 @@ builder.AddServiceDefaults();
 
 // ── infrastructure ───────────────────────────────────────────────────────────
 builder.Services.AddDbContext<RulesetDbContext>(options =>
-    options.UseInMemoryDatabase("RulesetEngine"));
+    options.UseInMemoryDatabase("RulesetEngineDb"));
 
 builder.Services.AddScoped<IRulesetRepository, RulesetRepository>();
 builder.Services.AddScoped<IEvaluationLogRepository, EvaluationLogRepository>();
@@ -72,30 +72,43 @@ using (var scope = app.Services.CreateScope())
 
     logger.LogInformation("🔄 Initializing database...");
 
-    // Drop and recreate for clean state
-    await dbContext.Database.EnsureDeletedAsync();
+    // Create database if it doesn't exist (preserves logs)
     await dbContext.Database.EnsureCreatedAsync();
 
-    logger.LogInformation("✅ Database created. Seeding rulesets from config...");
+    logger.LogInformation("✅ Database ready. Checking for rulesets...");
 
-    // Always seed from config
-    var configPath = Path.Combine(AppContext.BaseDirectory, "RulesetConfig.json");
-    logger.LogInformation("📂 Looking for config at: {ConfigPath}", configPath);
+    var existingRulesets = await dbContext.Rulesets.CountAsync();
 
-    if (File.Exists(configPath))
+    // Only seed if no rulesets exist
+    if (existingRulesets == 0)
     {
-        logger.LogInformation("✅ Config file found! Seeding...");
-        await seedService.SeedFromJsonAsync(dbContext, configPath);
+        logger.LogInformation("📊 No rulesets found. Seeding from config...");
 
-        var count = await dbContext.Rulesets.CountAsync();
-        var ruleCount = await dbContext.Rules.CountAsync();
-        logger.LogInformation("✅ Seeding complete! Rulesets: {RulesetCount}, Rules: {RuleCount}", count, ruleCount);
+        var configPath = Path.Combine(AppContext.BaseDirectory, "RulesetConfig.json");
+        logger.LogInformation("📂 Looking for config at: {ConfigPath}", configPath);
+
+        if (File.Exists(configPath))
+        {
+            logger.LogInformation("✅ Config file found! Seeding...");
+            await seedService.SeedFromJsonAsync(dbContext, configPath);
+
+            var count = await dbContext.Rulesets.CountAsync();
+            var ruleCount = await dbContext.Rules.CountAsync();
+            logger.LogInformation("✅ Seeding complete! Rulesets: {RulesetCount}, Rules: {RuleCount}", count, ruleCount);
+        }
+        else
+        {
+            logger.LogError("❌ Config file NOT found at: {ConfigPath}", configPath);
+        }
     }
     else
     {
-        logger.LogError("❌ Config file NOT found at: {ConfigPath}", configPath);
+        logger.LogInformation("✅ Found {RulesetCount} existing rulesets. Skipping seed.", existingRulesets);
+        var logCount = await dbContext.EvaluationLogs.CountAsync();
+        logger.LogInformation("📊 Current evaluation logs: {LogCount}", logCount);
     }
 }
+
 
 app.Run();
 

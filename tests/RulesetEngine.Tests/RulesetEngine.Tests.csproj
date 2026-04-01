@@ -16,6 +16,10 @@
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0" />
+    <PackageReference Include="coverlet.collector" Version="6.0.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/RulesetEngine.Domain/RulesetEngine.Domain.csproj" />

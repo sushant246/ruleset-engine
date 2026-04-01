@@ -59,9 +59,7 @@ public class RulesetManagementService : IRulesetManagementService
 
         existing.Name = request.Name;
         existing.Description = request.Description;
-        existing.Priority = request.Priority;
         existing.IsActive = request.IsActive;
-        existing.ConditionLogic = request.ConditionLogic;
 
         existing.Conditions = request.Conditions.Select(c => new Condition
         {
@@ -73,8 +71,6 @@ public class RulesetManagementService : IRulesetManagementService
         existing.Rules = request.Rules.Select(r => new Rule
         {
             Name = r.Name,
-            Priority = r.Priority,
-            ConditionLogic = r.ConditionLogic,
             Conditions = r.Conditions.Select(c => new Condition
             {
                 Field = c.Field,
@@ -127,9 +123,7 @@ public class RulesetManagementService : IRulesetManagementService
         Id = rs.Id,
         Name = rs.Name,
         Description = rs.Description,
-        Priority = rs.Priority,
         IsActive = rs.IsActive,
-        ConditionLogic = rs.ConditionLogic,
         CreatedAt = rs.CreatedAt,
         UpdatedAt = rs.UpdatedAt,
         Conditions = rs.Conditions.Select(c => new ConditionDto
@@ -143,8 +137,6 @@ public class RulesetManagementService : IRulesetManagementService
         {
             Id = r.Id,
             Name = r.Name,
-            Priority = r.Priority,
-            ConditionLogic = r.ConditionLogic,
             ProductionPlant = r.Result?.ProductionPlant,
             Conditions = r.Conditions.Select(c => new ConditionDto
             {
@@ -160,9 +152,7 @@ public class RulesetManagementService : IRulesetManagementService
     {
         Name = request.Name,
         Description = request.Description,
-        Priority = request.Priority,
         IsActive = request.IsActive,
-        ConditionLogic = request.ConditionLogic,
         Conditions = request.Conditions.Select(c => new Condition
         {
             Field = c.Field,
@@ -172,8 +162,6 @@ public class RulesetManagementService : IRulesetManagementService
         Rules = request.Rules.Select(r => new Rule
         {
             Name = r.Name,
-            Priority = r.Priority,
-            ConditionLogic = r.ConditionLogic,
             Conditions = r.Conditions.Select(c => new Condition
             {
                 Field = c.Field,

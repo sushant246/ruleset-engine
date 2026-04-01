@@ -33,7 +33,7 @@ public class RuleEvaluationEngineTests
     [Fact]
     public void Evaluate_MatchingRulesetAndRule_ReturnsMatch()
     {
-        var ruleset = CreateRuleset("Publisher 99999", 1,
+        var ruleset = CreateRuleset("Publisher 99999",
             new List<Condition>
             {
                 new() { Field = "PublisherNumber", Operator = "Equals", Value = "99999" },
@@ -44,7 +44,6 @@ public class RuleEvaluationEngineTests
                 new()
                 {
                     Name = "Rule 1",
-                    Priority = 1,
                     Conditions = new List<Condition>
                     {
                         new() { Field = "BindTypeCode", Operator = "Equals", Value = "PB" },
@@ -79,7 +78,7 @@ public class RuleEvaluationEngineTests
     [Fact]
     public void Evaluate_RulesetConditionNotMet_ReturnsNoMatch()
     {
-        var ruleset = CreateRuleset("Publisher 99999", 1,
+        var ruleset = CreateRuleset("Publisher 99999",
             new List<Condition>
             {
                 new() { Field = "PublisherNumber", Operator = "Equals", Value = "99999" }
@@ -89,7 +88,6 @@ public class RuleEvaluationEngineTests
                 new()
                 {
                     Name = "Rule 1",
-                    Priority = 1,
                     Conditions = new List<Condition>
                     {
                         new() { Field = "BindTypeCode", Operator = "Equals", Value = "PB" }
@@ -117,7 +115,7 @@ public class RuleEvaluationEngineTests
     [Fact]
     public void Evaluate_RuleConditionNotMet_ReturnsNoMatch()
     {
-        var ruleset = CreateRuleset("Publisher 99999", 1,
+        var ruleset = CreateRuleset("Publisher 99999",
             new List<Condition>
             {
                 new() { Field = "PublisherNumber", Operator = "Equals", Value = "99999" }
@@ -127,7 +125,6 @@ public class RuleEvaluationEngineTests
                 new()
                 {
                     Name = "Rule 1",
-                    Priority = 1,
                     Conditions = new List<Condition>
                     {
                         new() { Field = "BindTypeCode", Operator = "Equals", Value = "PB" }
@@ -154,14 +151,13 @@ public class RuleEvaluationEngineTests
     [Fact]
     public void Evaluate_GreaterThanOrEqual_MatchesCorrectly()
     {
-        var ruleset = CreateRuleset("Ruleset", 1,
+        var ruleset = CreateRuleset("Ruleset",
             new List<Condition>(),
             new List<Rule>
             {
                 new()
                 {
                     Name = "Rule 1",
-                    Priority = 1,
                     Conditions = new List<Condition>
                     {
                         new() { Field = "PrintQuantity", Operator = "GreaterThanOrEqual", Value = "20" }
@@ -188,12 +184,11 @@ public class RuleEvaluationEngineTests
     [Fact]
     public void Evaluate_InactiveRuleset_Skipped()
     {
-        var ruleset = CreateRuleset("Inactive Ruleset", 1, new List<Condition>(), new List<Rule>
+        var ruleset = CreateRuleset("Inactive Ruleset", new List<Condition>(), new List<Rule>
         {
             new()
             {
                 Name = "Rule 1",
-                Priority = 1,
                 Conditions = new List<Condition>(),
                 Result = new RuleResult { ProductionPlant = "US" }
             }
@@ -212,9 +207,9 @@ public class RuleEvaluationEngineTests
     }
 
     [Fact]
-    public void Evaluate_MultipleRulesets_MatchesHighestPriority()
+    public void Evaluate_MultipleRulesets_MatchesFirstRulesetInSequence()
     {
-        var ruleset1 = CreateRuleset("Ruleset One", 1,
+        var ruleset1 = CreateRuleset("Ruleset One",
             new List<Condition>
             {
                 new() { Field = "PublisherNumber", Operator = "Equals", Value = "99990" }
@@ -223,7 +218,7 @@ public class RuleEvaluationEngineTests
             {
                 new()
                 {
-                    Name = "Rule 1", Priority = 1,
+                    Name = "Rule 1",
                     Conditions = new List<Condition>
                     {
                         new() { Field = "BindTypeCode", Operator = "Equals", Value = "PB" }
@@ -232,7 +227,7 @@ public class RuleEvaluationEngineTests
                 }
             });
 
-        var ruleset2 = CreateRuleset("Ruleset Two", 2,
+        var ruleset2 = CreateRuleset("Ruleset Two",
             new List<Condition>
             {
                 new() { Field = "PublisherNumber", Operator = "Equals", Value = "99990" }
@@ -241,7 +236,7 @@ public class RuleEvaluationEngineTests
             {
                 new()
                 {
-                    Name = "Rule 1", Priority = 1,
+                    Name = "Rule 1",
                     Conditions = new List<Condition>
                     {
                         new() { Field = "BindTypeCode", Operator = "Equals", Value = "PB" }
@@ -260,7 +255,7 @@ public class RuleEvaluationEngineTests
             }
         };
 
-        var result = _engine.Evaluate(context, new List<Ruleset> { ruleset2, ruleset1 });
+        var result = _engine.Evaluate(context, new List<Ruleset> { ruleset1, ruleset2 });
 
         Assert.True(result.Matched);
         Assert.Equal("PLANT_A", result.ProductionPlant);
@@ -279,11 +274,11 @@ public class RuleEvaluationEngineTests
     [InlineData("LessThan", "10", "5", true)]
     public void Evaluate_AllOperators_WorkCorrectly(string op, string value, string fieldValue, bool expectedMatch)
     {
-        var ruleset = CreateRuleset("Ruleset", 1, new List<Condition>(), new List<Rule>
+        var ruleset = CreateRuleset("Ruleset", new List<Condition>(), new List<Rule>
         {
             new()
             {
-                Name = "Rule", Priority = 1,
+                Name = "Rule",
                 Conditions = new List<Condition>
                 {
                     new() { Field = "TestField", Operator = op, Value = value }
@@ -309,45 +304,9 @@ public class RuleEvaluationEngineTests
     // ── Composite condition (AND/OR) tests ───────────────────────────────────
 
     [Fact]
-    public void Evaluate_RulesetOrLogic_MatchesWhenAnyGateConditionMet()
+    public void Evaluate_RulesetAndLogic_NoMatchWhenOnlyOneConditionMet()
     {
-        var ruleset = CreateRuleset("OR Ruleset", 1,
-            new List<Condition>
-            {
-                new() { Field = "PublisherNumber", Operator = "Equals", Value = "A" },
-                new() { Field = "PublisherNumber", Operator = "Equals", Value = "B" }
-            },
-            new List<Rule>
-            {
-                new()
-                {
-                    Name = "Rule 1", Priority = 1,
-                    Conditions = new List<Condition>(),
-                    Result = new RuleResult { ProductionPlant = "OR_PLANT" }
-                }
-            });
-        ruleset.ConditionLogic = "OR";
-
-        // Only field "A" is present — should still pass with OR logic
-        var context = new EvaluationContext
-        {
-            OrderId = "OR-001",
-            Fields = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["PublisherNumber"] = "A"
-            }
-        };
-
-        var result = _engine.Evaluate(context, new List<Ruleset> { ruleset });
-
-        Assert.True(result.Matched);
-        Assert.Equal("OR_PLANT", result.ProductionPlant);
-    }
-
-    [Fact]
-    public void Evaluate_RulesetAndLogic_NoMatchWhenOnlyOneGateConditionMet()
-    {
-        var ruleset = CreateRuleset("AND Ruleset", 1,
+        var ruleset = CreateRuleset("AND Ruleset",
             new List<Condition>
             {
                 new() { Field = "PublisherNumber", Operator = "Equals", Value = "99999" },
@@ -357,12 +316,11 @@ public class RuleEvaluationEngineTests
             {
                 new()
                 {
-                    Name = "Rule 1", Priority = 1,
+                    Name = "Rule 1",
                     Conditions = new List<Condition>(),
                     Result = new RuleResult { ProductionPlant = "AND_PLANT" }
                 }
             });
-        ruleset.ConditionLogic = "AND";
 
         // Only PublisherNumber matches — OrderMethod is wrong
         var context = new EvaluationContext
@@ -381,51 +339,15 @@ public class RuleEvaluationEngineTests
     }
 
     [Fact]
-    public void Evaluate_RuleOrLogic_MatchesWhenAnyRuleConditionMet()
-    {
-        var ruleset = CreateRuleset("Ruleset", 1,
-            new List<Condition>(),   // no gate conditions
-            new List<Rule>
-            {
-                new()
-                {
-                    Name = "OR Rule", Priority = 1,
-                    ConditionLogic = "OR",
-                    Conditions = new List<Condition>
-                    {
-                        new() { Field = "BindTypeCode", Operator = "Equals", Value = "PB" },
-                        new() { Field = "BindTypeCode", Operator = "Equals", Value = "HC" }
-                    },
-                    Result = new RuleResult { ProductionPlant = "FLEX_PLANT" }
-                }
-            });
-
-        // HC matches second condition
-        var context = new EvaluationContext
-        {
-            OrderId = "OR-RULE-001",
-            Fields = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["BindTypeCode"] = "HC"
-            }
-        };
-
-        var result = _engine.Evaluate(context, new List<Ruleset> { ruleset });
-
-        Assert.True(result.Matched);
-        Assert.Equal("FLEX_PLANT", result.ProductionPlant);
-    }
-
-    [Fact]
     public void Evaluate_EmptyConditions_AlwaysMatch()
     {
-        var ruleset = CreateRuleset("Empty Conditions", 1,
+        var ruleset = CreateRuleset("Empty Conditions",
             new List<Condition>(),
             new List<Rule>
             {
                 new()
                 {
-                    Name = "Rule 1", Priority = 1,
+                    Name = "Rule 1",
                     Conditions = new List<Condition>(),
                     Result = new RuleResult { ProductionPlant = "CATCH_ALL" }
                 }
@@ -443,13 +365,12 @@ public class RuleEvaluationEngineTests
         Assert.Equal("CATCH_ALL", result.ProductionPlant);
     }
 
-    private static Ruleset CreateRuleset(string name, int priority, List<Condition> conditions, List<Rule> rules)
+    private static Ruleset CreateRuleset(string name, List<Condition> conditions, List<Rule> rules)
     {
         return new Ruleset
         {
             Id = 1,
             Name = name,
-            Priority = priority,
             IsActive = true,
             Conditions = conditions,
             Rules = rules

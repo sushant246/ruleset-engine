@@ -23,23 +23,13 @@
             <input @bind="_model.Description" />
         </div>
         <div class="form-group">
-            <label>Priority</label>
-            <input type="number" @bind="_model.Priority" />
-        </div>
-        <div class="form-group">
-            <label>Gate Condition Logic</label>
-            <select @bind="_model.ConditionLogic">
-                <option value="AND">AND – all gate conditions must match</option>
-                <option value="OR">OR – any gate condition must match</option>
-            </select>
-        </div>
-        <div class="form-group">
             <label>
                 <input type="checkbox" @bind="_model.IsActive" /> Active
             </label>
         </div>
 
         <div class="section-title">Gate Conditions</div>
+        <p style="font-size:0.9rem;color:#666">All gate conditions must match (AND logic)</p>
         @foreach (var (cond, idx) in _model.Conditions.Select((c, i) => (c, i)))
         {
             <div class="condition-row">
@@ -62,25 +52,13 @@
                     <label>Rule Name</label>
                     <input @bind="rule.Name" />
                 </div>
-                <div style="display:flex;gap:1rem">
-                    <div class="form-group" style="flex:1">
-                        <label>Priority</label>
-                        <input type="number" @bind="rule.Priority" />
-                    </div>
-                    <div class="form-group" style="flex:1">
-                        <label>Condition Logic</label>
-                        <select @bind="rule.ConditionLogic">
-                            <option value="AND">AND</option>
-                            <option value="OR">OR</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="flex:1">
-                        <label>Production Plant</label>
-                        <input @bind="rule.ProductionPlant" />
-                    </div>
+                <div class="form-group">
+                    <label>Production Plant</label>
+                    <input @bind="rule.ProductionPlant" />
                 </div>
 
                 <div class="section-title">Conditions</div>
+                <p style="font-size:0.9rem;color:#666">All conditions must match (AND logic)</p>
                 @foreach (var (cond, ci) in rule.Conditions.Select((c, i) => (c, i)))
                 {
                     <div class="condition-row">
@@ -140,7 +118,7 @@
     }
 
     private void AddGateCondition() => _model!.Conditions.Add(new());
-    private void AddRule() => _model!.Rules.Add(new RuleEditModel { Priority = _model.Rules.Count + 1 });
+    private void AddRule() => _model!.Rules.Add(new RuleEditModel());
 
     private async Task SaveAsync()
     {
@@ -173,8 +151,6 @@
     private class RuleEditModel
     {
         public string Name { get; set; } = string.Empty;
-        public int Priority { get; set; }
-        public string ConditionLogic { get; set; } = "AND";
         public string ProductionPlant { get; set; } = string.Empty;
         public List<ConditionEditModel> Conditions { get; set; } = new();
     }
@@ -183,9 +159,7 @@
     {
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public int Priority { get; set; } = 1;
         public bool IsActive { get; set; } = true;
-        public string ConditionLogic { get; set; } = "AND";
         public List<ConditionEditModel> Conditions { get; set; } = new();
         public List<RuleEditModel> Rules { get; set; } = new();
 
@@ -193,9 +167,7 @@
         {
             Name = dto.Name,
             Description = dto.Description,
-            Priority = dto.Priority,
             IsActive = dto.IsActive,
-            ConditionLogic = dto.ConditionLogic,
             Conditions = dto.Conditions.Select(c => new ConditionEditModel
             {
                 Field = c.Field, Operator = c.Operator, Value = c.Value
@@ -203,11 +175,9 @@
             Rules = dto.Rules.Select(r => new RuleEditModel
             {
                 Name = r.Name,
-                Priority = r.Priority,
-                ConditionLogic = r.ConditionLogic,
                 ProductionPlant = r.ProductionPlant ?? string.Empty,
                 Conditions = r.Conditions.Select(c => new ConditionEditModel
-                {
+            {
                     Field = c.Field, Operator = c.Operator, Value = c.Value
                 }).ToList()
             }).ToList()
@@ -217,9 +187,7 @@
         {
             Name = Name,
             Description = Description,
-            Priority = Priority,
             IsActive = IsActive,
-            ConditionLogic = ConditionLogic,
             Conditions = Conditions.Select(c => new RulesetEngine.Application.DTOs.SaveConditionRequest
             {
                 Field = c.Field, Operator = c.Operator, Value = c.Value
@@ -227,8 +195,6 @@
             Rules = Rules.Select(r => new RulesetEngine.Application.DTOs.SaveRuleRequest
             {
                 Name = r.Name,
-                Priority = r.Priority,
-                ConditionLogic = r.ConditionLogic,
                 ProductionPlant = r.ProductionPlant,
                 Conditions = r.Conditions.Select(c => new RulesetEngine.Application.DTOs.SaveConditionRequest
                 {

@@ -54,13 +54,29 @@ public class RulesetSeedService
                 var ruleset = new Ruleset
                 {
                     Name = rulesetConfig.Name,
-                    Description = rulesetConfig.Description,
-                    Priority = rulesetConfig.Priority,
-                    IsActive = rulesetConfig.IsActive,
-                    ConditionLogic = rulesetConfig.ConditionLogic ?? "AND",
                     CreatedAt = DateTime.UtcNow,
+                    Conditions = new List<Condition>(),
                     Rules = new List<Rule>()
                 };
+
+                // Add ruleset-level conditions
+                if (rulesetConfig.Conditions != null && rulesetConfig.Conditions.Count > 0)
+                {
+                    _logger.LogInformation("    🔐 Adding {ConditionCount} ruleset-level conditions", rulesetConfig.Conditions.Count);
+
+                    foreach (var conditionConfig in rulesetConfig.Conditions)
+                    {
+                        var condition = new Condition
+                        {
+                            Field = conditionConfig.Field,
+                            Operator = conditionConfig.Operator,
+                            Value = conditionConfig.Value,
+                            Ruleset = ruleset
+                        };
+
+                        ruleset.Conditions.Add(condition);
+                    }
+                }
 
                 if (rulesetConfig.Rules != null && rulesetConfig.Rules.Count > 0)
                 {
@@ -71,16 +87,15 @@ public class RulesetSeedService
                         var rule = new Rule
                         {
                             Name = ruleConfig.Name,
-                            Priority = ruleConfig.Priority,
-                            ConditionLogic = ruleConfig.ConditionLogic ?? "AND",
                             Ruleset = ruleset,
                             Result = new RuleResult
                             {
-                                ProductionPlant = ruleConfig.ProductionPlant
+                                ProductionPlant = ruleConfig.Result?.ProductionPlant ?? string.Empty
                             },
                             Conditions = new List<Condition>()
                         };
 
+                        // Add rule-level conditions
                         if (ruleConfig.Conditions != null && ruleConfig.Conditions.Count > 0)
                         {
                             _logger.LogInformation("      🔧 Adding {ConditionCount} conditions to rule", ruleConfig.Conditions.Count);
@@ -139,20 +154,20 @@ public class RulesetConfiguration
 public class RulesetConfigModel
 {
     public string Name { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public int Priority { get; set; } = 1;
-    public bool IsActive { get; set; } = true;
-    public string? ConditionLogic { get; set; }
+    public List<ConditionConfigModel> Conditions { get; set; } = new();
     public List<RuleConfigModel> Rules { get; set; } = new();
 }
 
 public class RuleConfigModel
 {
     public string Name { get; set; } = string.Empty;
-    public int Priority { get; set; } = 1;
-    public string? ConditionLogic { get; set; }
-    public string ProductionPlant { get; set; } = string.Empty;
     public List<ConditionConfigModel> Conditions { get; set; } = new();
+    public RuleResultConfigModel? Result { get; set; }
+}
+
+public class RuleResultConfigModel
+{
+    public string ProductionPlant { get; set; } = string.Empty;
 }
 
 public class ConditionConfigModel
