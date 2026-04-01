@@ -18,6 +18,9 @@ builder.AddServiceDefaults();
 builder.Services.Configure<FileWatcherOptions>(
     builder.Configuration.GetSection(FileWatcherOptions.SectionName));
 
+// ── caching ──────────────────────────────────────────────────────────────────
+builder.Services.AddMemoryCache();
+
 // ── infrastructure ───────────────────────────────────────────────────────────
 builder.Services.AddDbContext<RulesetDbContext>(options =>
     options.UseInMemoryDatabase("RulesetEngineFileWatcher"));
@@ -27,6 +30,7 @@ builder.Services.AddScoped<IEvaluationLogRepository, EvaluationLogRepository>();
 
 // ── application ──────────────────────────────────────────────────────────────
 builder.Services.AddScoped<RuleEvaluationEngine>();
+builder.Services.AddScoped<IRulesetCacheService, RulesetCacheService>();
 builder.Services.AddScoped<IRuleEvaluationService, RuleEvaluationService>();
 
 // ── file watcher ─────────────────────────────────────────────────────────────

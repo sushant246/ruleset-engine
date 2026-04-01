@@ -23,7 +23,6 @@ public class RulesetRepository : IRulesetRepository
                 .ThenInclude(rule => rule.Conditions)
             .Include(r => r.Rules)
                 .ThenInclude(rule => rule.Result)
-            .OrderBy(r => r.Priority)
             .ToListAsync();
     }
 

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -14,6 +15,7 @@ public class RuleEvaluationServiceTests
 {
     private readonly Mock<IRulesetRepository> _mockRulesetRepo;
     private readonly Mock<IEvaluationLogRepository> _mockLogRepo;
+    private readonly Mock<IRulesetCacheService> _mockCacheService;
     private readonly RuleEvaluationEngine _engine;
     private readonly RuleEvaluationService _service;
 
@@ -21,6 +23,7 @@ public class RuleEvaluationServiceTests
     {
         _mockRulesetRepo = new Mock<IRulesetRepository>();
         _mockLogRepo = new Mock<IEvaluationLogRepository>();
+        _mockCacheService = new Mock<IRulesetCacheService>();
         _engine = new RuleEvaluationEngine(NullLogger<RuleEvaluationEngine>.Instance);
         _service = BuildService(fallbackPlant: null);
 
@@ -50,6 +53,7 @@ public class RuleEvaluationServiceTests
         return new RuleEvaluationService(
             _engine,
             _mockRulesetRepo.Object,
+            _mockCacheService.Object,
             _mockLogRepo.Object,
             NullLogger<RuleEvaluationService>.Instance,
             config);
@@ -93,7 +97,6 @@ public class RuleEvaluationServiceTests
         {
             Id = 1,
             Name = "Ruleset Two",
-            Priority = 1,
             IsActive = true,
             Conditions = new List<Condition>
             {
@@ -105,7 +108,6 @@ public class RuleEvaluationServiceTests
                 new()
                 {
                     Name = "Rule 1",
-                    Priority = 1,
                     Conditions = new List<Condition>
                     {
                         new() { Field = "BindTypeCode", Operator = "Equals", Value = "PB" },
@@ -215,13 +217,13 @@ public class RuleEvaluationServiceTests
         var service = BuildService(fallbackPlant: "DEFAULT_PLANT");
         var ruleset = new Ruleset
         {
-            Id = 1, Name = "Test", Priority = 1, IsActive = true,
+            Id = 1, Name = "Test", IsActive = true,
             Conditions = new List<Condition>(),
             Rules = new List<Rule>
             {
                 new()
                 {
-                    Name = "Rule 1", Priority = 1,
+                    Name = "Rule 1",
                     Conditions = new List<Condition>(),
                     Result = new RuleResult { ProductionPlant = "MATCHED_PLANT" }
                 }

@@ -68,8 +68,6 @@ public class RuleDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public int Priority { get; set; }
-    public string ConditionLogic { get; set; } = "AND";
     public List<ConditionDto> Conditions { get; set; } = new();
     public string? ProductionPlant { get; set; }
 }
@@ -79,9 +77,7 @@ public class RulesetDto
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public int Priority { get; set; }
     public bool IsActive { get; set; }
-    public string ConditionLogic { get; set; } = "AND";
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public List<ConditionDto> Conditions { get; set; } = new();
@@ -98,8 +94,6 @@ public class SaveConditionRequest
 public class SaveRuleRequest
 {
     public string Name { get; set; } = string.Empty;
-    public int Priority { get; set; }
-    public string ConditionLogic { get; set; } = "AND";
     public List<SaveConditionRequest> Conditions { get; set; } = new();
     public string ProductionPlant { get; set; } = string.Empty;
 }
@@ -108,9 +102,7 @@ public class SaveRulesetRequest
 {
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public int Priority { get; set; }
     public bool IsActive { get; set; } = true;
-    public string ConditionLogic { get; set; } = "AND";
     public List<SaveConditionRequest> Conditions { get; set; } = new();
     public List<SaveRuleRequest> Rules { get; set; } = new();
 }

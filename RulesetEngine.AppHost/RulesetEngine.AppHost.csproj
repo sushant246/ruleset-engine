@@ -16,8 +16,8 @@
     <PackageReference Include="KubernetesClient" Version="19.0.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../RulesetEngine.Api/RulesetEngine.Api.csproj" IsAspireProjectResource="true" />
-    <ProjectReference Include="../RulesetEngine.FileWatcher/RulesetEngine.FileWatcher.csproj" IsAspireProjectResource="true" />
-    <ProjectReference Include="../RulesetEngine.AdminUI/RulesetEngine.AdminUI.csproj" IsAspireProjectResource="true" />
+    <ProjectReference Include="src/RulesetEngine.Api/RulesetEngine.Api.csproj" IsAspireProjectResource="true" />
+    <ProjectReference Include="src/RulesetEngine.FileWatcher/RulesetEngine.FileWatcher.csproj" IsAspireProjectResource="true" />
+    <ProjectReference Include="src/RulesetEngine.AdminUI/RulesetEngine.AdminUI.csproj" IsAspireProjectResource="true" />
   </ItemGroup>
 </Project>

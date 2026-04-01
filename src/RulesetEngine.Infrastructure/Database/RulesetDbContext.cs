@@ -22,10 +22,13 @@ public class RulesetDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
             entity.Property(e => e.Description).HasMaxLength(500);
-            entity.Property(e => e.ConditionLogic).IsRequired().HasMaxLength(10);
             entity.HasMany(e => e.Rules)
                   .WithOne(r => r.Ruleset)
                   .HasForeignKey(r => r.RulesetId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(e => e.Conditions)
+                  .WithOne(c => c.Ruleset)
+                  .HasForeignKey(c => c.RulesetId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -33,7 +36,6 @@ public class RulesetDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
-            entity.Property(e => e.ConditionLogic).IsRequired().HasMaxLength(10);
             entity.HasOne(e => e.Result)
                   .WithOne(r => r.Rule)
                   .HasForeignKey<RuleResult>(r => r.RuleId)
@@ -46,6 +48,14 @@ public class RulesetDbContext : DbContext
             entity.Property(e => e.Field).IsRequired().HasMaxLength(100);
             entity.Property(e => e.Operator).IsRequired().HasMaxLength(50);
             entity.Property(e => e.Value).IsRequired().HasMaxLength(500);
+            entity.HasOne(e => e.Rule)
+                  .WithMany(r => r.Conditions)
+                  .HasForeignKey(e => e.RuleId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Ruleset)
+                  .WithMany(r => r.Conditions)
+                  .HasForeignKey(e => e.RulesetId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<RuleResult>(entity =>

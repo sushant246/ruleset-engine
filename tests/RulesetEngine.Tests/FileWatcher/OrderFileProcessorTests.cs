@@ -136,6 +136,166 @@ public class OrderFileProcessorTests : IDisposable
         _mockEvaluationService.Verify(s => s.EvaluateAsync(It.IsAny<OrderDto>()), Times.Never);
     }
 
+    // ── EXCEPTION HANDLING TESTS (Tier 1 Coverage Gaps) ────────────────────
+
+    [Fact]
+    public async Task ProcessZipAsync_MalformedJsonEntry_SkipsEntryAndContinues()
+    {
+        // Arrange: ZIP with one malformed JSON and one valid JSON
+        var zipPath = Path.Combine(_tempDir, "mixed-quality.zip");
+        using (var archive = ZipFile.Open(zipPath, ZipArchiveMode.Create))
+        {
+            // Add malformed JSON
+            var malformedEntry = archive.CreateEntry("bad-order.json");
+            using (var stream = malformedEntry.Open())
+            {
+                using var writer = new StreamWriter(stream);
+                writer.Write("{ invalid json: }"); // Not valid JSON
+            }
+
+            // Add valid JSON
+            AddOrderEntry(archive, "good-order.json", CreateOrder("VALID-001", "99999"));
+        }
+
+        _mockEvaluationService
+            .Setup(s => s.EvaluateAsync(It.IsAny<OrderDto>()))
+            .ReturnsAsync(new EvaluationResultDto { Matched = true, ProductionPlant = "US" });
+
+        // Act: Should not crash despite malformed JSON
+        await _processor.ProcessZipAsync(zipPath);
+
+        // Assert: Only valid order was evaluated, ZIP moved to archive
+        _mockEvaluationService.Verify(s => s.EvaluateAsync(It.Is<OrderDto>(o => o.OrderId == "VALID-001")), Times.Once);
+
+        var archiveFolder = Path.Combine(_tempDir, "archive");
+        Assert.True(Directory.Exists(archiveFolder));
+        Assert.Single(Directory.GetFiles(archiveFolder, "*.zip"));
+    }
+
+    [Fact]
+    public async Task ProcessZipAsync_EvaluationServiceThrows_SkipsEntryAndContinues()
+    {
+        // Arrange: ZIP with multiple orders; service throws on first, succeeds on second
+        var zipPath = Path.Combine(_tempDir, "service-error.zip");
+        using (var archive = ZipFile.Open(zipPath, ZipArchiveMode.Create))
+        {
+            AddOrderEntry(archive, "order1.json", CreateOrder("FAIL-001", "A"));
+            AddOrderEntry(archive, "order2.json", CreateOrder("SUCCESS-002", "B"));
+        }
+
+        _mockEvaluationService
+            .SetupSequence(s => s.EvaluateAsync(It.IsAny<OrderDto>()))
+            .ThrowsAsync(new InvalidOperationException("Service error on first call"))
+            .ReturnsAsync(new EvaluationResultDto { Matched = true, ProductionPlant = "US" });
+
+        // Act: Should handle first exception and process second order
+        await _processor.ProcessZipAsync(zipPath);
+
+        // Assert: Both were attempted, but second succeeded
+        _mockEvaluationService.Verify(s => s.EvaluateAsync(It.IsAny<OrderDto>()), Times.Exactly(2));
+
+        var archiveFolder = Path.Combine(_tempDir, "archive");
+        Assert.True(Directory.Exists(archiveFolder));
+        Assert.Single(Directory.GetFiles(archiveFolder, "*.zip")); // ZIP archived despite error
+    }
+
+    [Fact]
+    public async Task ProcessZipAsync_PartialFailure_ArchivesZipAnyway()
+    {
+        // Arrange: Mix of good and bad entries
+        var zipPath = Path.Combine(_tempDir, "partial-fail.zip");
+        using (var archive = ZipFile.Open(zipPath, ZipArchiveMode.Create))
+        {
+            AddOrderEntry(archive, "order1.json", CreateOrder("ORDER-001", "A"));
+
+            var badEntry = archive.CreateEntry("order2.json");
+            using (var stream = badEntry.Open())
+            {
+                using var writer = new StreamWriter(stream);
+                writer.Write("{ invalid }");
+            }
+
+            AddOrderEntry(archive, "order3.json", CreateOrder("ORDER-003", "C"));
+        }
+
+        _mockEvaluationService
+            .Setup(s => s.EvaluateAsync(It.IsAny<OrderDto>()))
+            .ReturnsAsync(new EvaluationResultDto { Matched = true });
+
+        // Act
+        await _processor.ProcessZipAsync(zipPath);
+
+        // Assert: Successfully evaluated 2, ZIP still archived
+        _mockEvaluationService.Verify(s => s.EvaluateAsync(It.IsAny<OrderDto>()), Times.Exactly(2));
+        Assert.False(File.Exists(zipPath)); // Original moved
+
+        var archiveFolder = Path.Combine(_tempDir, "archive");
+        Assert.Single(Directory.GetFiles(archiveFolder, "*.zip"));
+    }
+
+    [Fact]
+    public async Task ProcessZipAsync_FileCollision_AppendedWithTimestamp()
+    {
+        // Arrange: Pre-create a file in archive folder
+        var archiveFolder = Path.Combine(_tempDir, "archive");
+        Directory.CreateDirectory(archiveFolder);
+
+        var zipName = "collision-test.zip";
+        var existingPath = Path.Combine(archiveFolder, zipName);
+        await File.WriteAllTextAsync(existingPath, "existing file");
+
+        var order = CreateOrder("COLLISION-001", "99999");
+        var newZipPath = CreateZipWithOrder(_tempDir, zipName, "order.json", order);
+
+        _mockEvaluationService
+            .Setup(s => s.EvaluateAsync(It.IsAny<OrderDto>()))
+            .ReturnsAsync(new EvaluationResultDto { Matched = true, ProductionPlant = "US" });
+
+        // Act
+        await _processor.ProcessZipAsync(newZipPath);
+
+        // Assert: File moved but with timestamp suffix (not overwritten)
+        Assert.False(File.Exists(newZipPath));
+        Assert.True(File.Exists(existingPath)); // Original exists
+
+        var archivedFiles = Directory.GetFiles(archiveFolder, "*.zip");
+        Assert.Equal(2, archivedFiles.Length); // Original + timestamped new file
+    }
+
+    [Fact]
+    public async Task ProcessZipAsync_CancellationRequested_StopsProcessing()
+    {
+        // Arrange: ZIP with multiple orders and a cancellation token
+        var zipPath = Path.Combine(_tempDir, "cancellation.zip");
+        using (var archive = ZipFile.Open(zipPath, ZipArchiveMode.Create))
+        {
+            AddOrderEntry(archive, "order1.json", CreateOrder("ORDER-001", "A"));
+            AddOrderEntry(archive, "order2.json", CreateOrder("ORDER-002", "B"));
+            AddOrderEntry(archive, "order3.json", CreateOrder("ORDER-003", "C"));
+        }
+
+        var cts = new System.Threading.CancellationTokenSource();
+        var callCount = 0;
+        _mockEvaluationService
+            .Setup(s => s.EvaluateAsync(It.IsAny<OrderDto>()))
+            .Callback(() =>
+            {
+                callCount++;
+                if (callCount >= 1)
+                    cts.Cancel(); // Cancel after first call
+            })
+            .ReturnsAsync(new EvaluationResultDto { Matched = true, ProductionPlant = "US" });
+
+        // Act
+        await _processor.ProcessZipAsync(zipPath, cts.Token);
+
+        // Assert: Processing stopped early
+        Assert.True(callCount <= 2); // Should not process all 3
+
+        var archiveFolder = Path.Combine(_tempDir, "archive");
+        Assert.Single(Directory.GetFiles(archiveFolder, "*.zip")); // ZIP still archived
+    }
+
     // ── helpers ──────────────────────────────────────────────────────────────
 
     private static OrderDto CreateOrder(string orderId, string publisherNumber) => new()

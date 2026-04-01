@@ -21,30 +21,26 @@ else
     <table style="margin-top:1rem">
         <thead>
             <tr>
-                <th>Priority</th>
                 <th>Name</th>
                 <th>Description</th>
-                <th>Gate Logic</th>
-                <th>Active</th>
                 <th>Rules</th>
+                <th>Active</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var rs in _rulesets.OrderBy(r => r.Priority))
+            @foreach (var rs in _rulesets)
             {
                 <tr>
-                    <td>@rs.Priority</td>
                     <td>@rs.Name</td>
                     <td>@rs.Description</td>
-                    <td>@rs.ConditionLogic</td>
+                    <td>@rs.Rules.Count</td>
                     <td>
                         @if (rs.IsActive)
                         { <span class="badge-ok">Active</span> }
                         else
                         { <span class="badge-no">Inactive</span> }
                     </td>
-                    <td>@rs.Rules.Count</td>
                     <td>
                         <button class="btn btn-primary btn-sm" @onclick="() => EditRuleset(rs.Id)">Edit</button>
                         <button class="btn btn-danger btn-sm" @onclick="() => DeleteAsync(rs.Id)">Delete</button>

@@ -47,7 +47,7 @@ public class EvaluationControllerTests : IClassFixture<WebApplicationFactory<Api
                 new()
                 {
                     Sku = "PB-001",
-                    PrintQuantity = 10,
+                    PrintQuantity = 20,
                     Components = new List<ComponentDto>
                     {
                         new()
@@ -66,7 +66,7 @@ public class EvaluationControllerTests : IClassFixture<WebApplicationFactory<Api
         var result = await response.Content.ReadFromJsonAsync<EvaluationResultDto>();
         Assert.NotNull(result);
         Assert.True(result.Matched);
-        Assert.Equal("US", result.ProductionPlant);
+        Assert.Equal("KGL", result.ProductionPlant);
         Assert.Equal("Ruleset Two", result.MatchedRuleset);
     }
 

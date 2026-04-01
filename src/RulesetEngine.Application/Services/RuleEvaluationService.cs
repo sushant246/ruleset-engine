@@ -15,6 +15,7 @@ public class RuleEvaluationService : IRuleEvaluationService
 {
     private readonly RuleEvaluationEngine _evaluationEngine;
     private readonly IRulesetRepository _rulesetRepository;
+    private readonly IRulesetCacheService _rulesetCacheService;
     private readonly IEvaluationLogRepository _evaluationLogRepository;
     private readonly ILogger<RuleEvaluationService> _logger;
     private readonly string? _fallbackProductionPlant;
@@ -22,12 +23,14 @@ public class RuleEvaluationService : IRuleEvaluationService
     public RuleEvaluationService(
         RuleEvaluationEngine evaluationEngine,
         IRulesetRepository rulesetRepository,
+        IRulesetCacheService rulesetCacheService,
         IEvaluationLogRepository evaluationLogRepository,
         ILogger<RuleEvaluationService> logger,
         IConfiguration configuration)
     {
         _evaluationEngine = evaluationEngine;
         _rulesetRepository = rulesetRepository;
+        _rulesetCacheService = rulesetCacheService;
         _evaluationLogRepository = evaluationLogRepository;
         _logger = logger;
         _fallbackProductionPlant = configuration["RulesetEngine:FallbackProductionPlant"];
@@ -50,8 +53,17 @@ public class RuleEvaluationService : IRuleEvaluationService
                 };
             }
 
-            var rulesets = (await _rulesetRepository.GetActiveRulesetsAsync()).ToList();
-            _logger.LogDebug("Loaded {RulesetCount} active rulesets", rulesets.Count);
+            var rulesets = (await _rulesetCacheService.GetActiveRulesetsAsync(_rulesetRepository)).ToList();
+            _logger.LogInformation("📋 Loaded {RulesetCount} active rulesets", rulesets.Count);
+
+            if (rulesets.Count == 0)
+            {
+                _logger.LogWarning("⚠️ WARNING: No rulesets found in database!");
+                foreach (var rs in rulesets)
+                {
+                    _logger.LogInformation("  - Ruleset: {Name}, Rules: {RuleCount}", rs.Name, rs.Rules?.Count ?? 0);
+                }
+            }
 
             var context = ExtractContext(order);
             var domainResult = _evaluationEngine.Evaluate(context, rulesets);
