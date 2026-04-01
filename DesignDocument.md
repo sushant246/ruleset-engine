@@ -68,7 +68,7 @@
 ## System Overview
 
 ### Purpose
-RulesetEngine is a cloud-native, rule-based order evaluation system that routes orders to production plants based on configurable business rules. It provides:
+RulesetEngine is rule-based order evaluation system that routes orders to production plants based on configurable business rules. It provides:
 
 - **REST API** for real-time order evaluation
 - **Blazor UI** for ruleset management and monitoring
@@ -151,9 +151,6 @@ Solution: Batch process orders from ZIP files with no network overhead
 Problem: System has no answer when no rule matches
 Solution: Configured fallback plant ensures every order gets routed
 
-**AND Logic (not OR):**
-Problem: OR logic matches too many orders; hard to be specific
-Solution: AND logic requires all conditions to match; more precise routing
 
 ---
 

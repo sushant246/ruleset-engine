@@ -31,7 +31,6 @@
 - [x] Database Migrations (ER diagram, SQL scripts, EF Core migration)
 - [x] API Design (Endpoints, requests/responses, status codes)
 - [x] Testing Strategy (Unit tests, integration tests, coverage, edge cases)
-- [x] Deployment Architecture (Local, containerized, cloud)
 
 ---
 
@@ -153,11 +152,6 @@
 - [x] HTTP status codes
 - [x] Example workflows
 
-### 10. Deployment Architecture
-- [x] Local development (Aspire)
-- [x] Containerized (Docker)
-- [x] Cloud (Kubernetes/AKS)
-- [x] Service communication
 
 ---
 
