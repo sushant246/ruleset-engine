@@ -3,6 +3,7 @@ global using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Microsoft.Extensions.Logging;
+using RulesetEngine.Api.Middleware;
 using RulesetEngine.Api.Services;
 using RulesetEngine.Application.Services;
 using RulesetEngine.Domain.Interfaces;
@@ -41,6 +42,12 @@ builder.Services.AddScoped<IRuleEvaluationService, RuleEvaluationService>();
 builder.Services.AddScoped<IRulesetManagementService, RulesetManagementService>();
 builder.Services.AddScoped<RulesetSeedService>();
 
+// ── middleware ──────────────────────────────────────────────────────────────
+builder.Services.AddSingleton<GlobalExceptionHandlingMiddleware>();
+
+// ── singleton services (stateless, reusable) ──────────────────────────────────
+builder.Services.AddSingleton<RuleValidator>();
+
 // ── controllers ──────────────────────────────────────────────────────────────
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen(c =>
@@ -54,6 +61,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>

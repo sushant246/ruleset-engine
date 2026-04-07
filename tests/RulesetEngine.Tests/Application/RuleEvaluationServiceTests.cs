@@ -50,6 +50,11 @@ public class RuleEvaluationServiceTests
             .Setup(r => r.SaveChangesAsync())
             .Returns(Task.CompletedTask);
 
+        // ✅ FIX: Configure the cache service to call the repository and cache the result
+        _mockCacheService
+            .Setup(c => c.GetActiveRulesetsAsync(It.IsAny<IRulesetRepository>()))
+            .Returns(async (IRulesetRepository repo) => await repo.GetActiveRulesetsAsync());
+
         return new RuleEvaluationService(
             _engine,
             _mockRulesetRepo.Object,

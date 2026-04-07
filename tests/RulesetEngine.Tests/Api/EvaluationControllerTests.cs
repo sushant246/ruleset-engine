@@ -71,7 +71,7 @@ public class EvaluationControllerTests : IClassFixture<WebApplicationFactory<Api
     }
 
     [Fact]
-    public async Task Evaluate_NoMatchingOrder_ReturnsNotMatchedResult()
+    public async Task Evaluate_NoMatchingOrder_ReturnsNotMatchedResultWithFallback()
     {
         var order = new OrderDto
         {
@@ -105,8 +105,9 @@ public class EvaluationControllerTests : IClassFixture<WebApplicationFactory<Api
 
         var result = await response.Content.ReadFromJsonAsync<EvaluationResultDto>();
         Assert.NotNull(result);
-        Assert.False(result.Matched);
-        Assert.Null(result.ProductionPlant);
+        Assert.False(result.Matched);  // No match found
+        Assert.NotNull(result.ProductionPlant);  // But fallback is applied
+        Assert.Equal("DefaultPlant", result.ProductionPlant);  // Matches configured fallback
     }
 
     [Fact]
